@@ -1,0 +1,6 @@
+{
+  "name": "Nexora SalonOS",
+  "description": "A premium SaaS beauty industry operating system, featuring a unified marketplace, white-label salon website builder, multi-template booking system, ledger-based digital wallets, growth partner networks, and distributor portals.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
