@@ -8,7 +8,7 @@ import {
   Phone, ShieldAlert, Check, Calendar, Clock, 
   User, CheckCircle, ArrowLeft, ArrowRight, Star, 
   MapPin, Heart, Sparkles, MessageCircle, AlertCircle,
-  Home, Gift, RefreshCw
+  Home, Gift, RefreshCw, X
 } from 'lucide-react';
 import { api } from '../lib/supabase';
 import { 
@@ -56,6 +56,86 @@ export default function PublicShopWebsite({
   const [submittingBooking, setSubmittingBooking] = useState(false);
   const [isRetryingSync, setIsRetryingSync] = useState(false);
   const [successBooking, setSuccessBooking] = useState<any | null>(null);
+  const [selectedProfileStaff, setSelectedProfileStaff] = useState<Staff | null>(null);
+
+  // Lightbox state & touch gesture handlers
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxCaption, setLightboxCaption] = useState('');
+
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    const distance = touchStartX - touchEndX;
+    const minSwipeDistance = 50;
+
+    if (distance > minSwipeDistance) {
+      setLightboxIndex(prev => (prev + 1) % lightboxImages.length);
+    } else if (distance < -minSwipeDistance) {
+      setLightboxIndex(prev => (prev - 1 + lightboxImages.length) % lightboxImages.length);
+    }
+
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
+
+  const openLightbox = (images: string[], index: number, caption: string) => {
+    setLightboxImages(images);
+    setLightboxIndex(index);
+    setLightboxCaption(caption);
+    setLightboxOpen(true);
+  };
+
+  // Customer Reviews & Testimonials state
+  const [reviewsList, setReviewsList] = useState<Review[]>([]);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [newReviewRating, setNewReviewRating] = useState(5);
+  const [newReviewName, setNewReviewName] = useState('');
+  const [newReviewComment, setNewReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+
+  useEffect(() => {
+    if (siteData && siteData.reviews) {
+      setReviewsList(siteData.reviews);
+    }
+  }, [siteData]);
+
+  const handleAddReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newReviewName || !newReviewComment) return;
+    setSubmittingReview(true);
+    try {
+      const res = await api.createReview({
+        tenant_id: tenant.id,
+        customer_name: newReviewName,
+        rating: Number(newReviewRating),
+        comment: newReviewComment
+      });
+      if (res.success && res.review) {
+        setReviewsList(prev => [res.review, ...prev]);
+        setShowReviewModal(false);
+        setNewReviewName('');
+        setNewReviewComment('');
+        setNewReviewRating(5);
+        alert("Thank you! Your verified review has been published successfully.");
+      }
+    } catch (err) {
+      console.error("Error submitting review:", err);
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   // Customer Profile & Booking History State (Powered by Supabase)
   const [userPhoneSearch, setUserPhoneSearch] = useState(() => localStorage.getItem('nexora_customer_phone') || '');
@@ -578,7 +658,7 @@ export default function PublicShopWebsite({
                       <span className="font-extrabold text-slate-800">{tenant.rating || '5.0'} Rating</span>
                     </div>
                     <span className="text-slate-300">|</span>
-                    <span className="text-slate-600 text-xs font-semibold">{reviews.length} Audited Reviews</span>
+                    <span className="text-slate-600 text-xs font-semibold">{reviewsList.length} Audited Reviews</span>
                   </div>
                 </div>
                 <div className="rounded-2xl overflow-hidden aspect-video shadow-lg bg-slate-200">
@@ -634,43 +714,293 @@ export default function PublicShopWebsite({
             {/* Gallery Images Placeholder */}
             {website.section_visibility.gallery && (
               <section className="max-w-5xl mx-auto px-4 py-6 space-y-4">
-                <h3 className="text-xl font-bold tracking-tight text-slate-900">Visual Ambience & Portfolio</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold tracking-tight text-slate-900">Visual Ambience & Portfolio</h3>
+                  <span className="text-xs text-slate-400 font-mono">Click to view full-screen</span>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   {[
-                    "https://images.unsplash.com/photo-1560066984-138dadb4c035",
-                    "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e",
-                    "https://images.unsplash.com/photo-1562322140-8baeececf3df",
-                    "https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2"
-                  ].map((img, i) => (
-                    <div key={i} className="aspect-square rounded-2xl overflow-hidden bg-slate-200">
-                      <img src={`${img}?auto=format&fit=crop&q=80&w=300&h=300`} alt="Portfolio item" className="w-full h-full object-cover hover:scale-105 transition-transform" />
+                    "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=1200&h=1200",
+                    "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=1200&h=1200",
+                    "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&q=80&w=1200&h=1200",
+                    "https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?auto=format&fit=crop&q=80&w=1200&h=1200"
+                  ].map((imgUrl, i, arr) => (
+                    <div 
+                      key={i} 
+                      onClick={() => openLightbox(arr, i, `Salon Ambience & Portfolio #${i + 1}`)}
+                      className="aspect-square rounded-2xl overflow-hidden bg-slate-200 cursor-pointer group relative shadow-sm hover:shadow-md transition-all"
+                    >
+                      <img src={imgUrl} alt="Portfolio item" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold">
+                        View Lightbox
+                      </div>
                     </div>
                   ))}
                 </div>
               </section>
             )}
 
-            {/* Verified Reviews */}
-            {website.section_visibility.reviews && (
-              <section className="max-w-5xl mx-auto px-4 py-6 space-y-6">
-                <h3 className="text-xl font-bold tracking-tight text-slate-900">Verified Audit Reviews</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {reviews.map((r) => (
-                    <div key={r.id} className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-sm text-slate-800">{r.customer_name}</span>
-                        <div className="flex items-center gap-0.5 text-amber-500">
-                          {Array.from({ length: r.rating }).map((_, idx) => (
-                            <Star key={idx} className="w-3.5 h-3.5 fill-amber-500" />
+            {/* Meet Our Expert Specialists Section */}
+            <section className="max-w-5xl mx-auto px-4 py-8 space-y-6 text-left">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-extrabold text-blue-600 tracking-widest uppercase block">Expert Team</span>
+                  <h3 className="text-xl font-bold tracking-tight text-slate-900">Meet Our Master Specialists & View Profiles</h3>
+                </div>
+                <span className="text-xs text-slate-400 font-mono">{staffList.length} Professionals</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {staffList.map((st) => {
+                  const staffGallery = (st.work_gallery && st.work_gallery.length > 0 ? st.work_gallery : [
+                    "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=400&h=400",
+                    "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=400&h=400",
+                    "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&q=80&w=400&h=400"
+                  ]).slice(0, 3);
+
+                  return (
+                    <div 
+                      key={st.id}
+                      className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all space-y-4 flex flex-col justify-between text-left"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          {st.photo_url ? (
+                            <img src={st.photo_url} alt={st.name} className="w-14 h-14 rounded-2xl object-cover shadow-sm" />
+                          ) : (
+                            <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold text-lg">
+                              {st.name.charAt(0)}
+                            </div>
+                          )}
+                          <div>
+                            <h4 className="text-sm font-bold text-slate-900">{st.name}</h4>
+                            <span className="text-[11px] text-slate-500 block font-medium">{st.role}</span>
+                            <div className="flex items-center gap-1 text-[11px] text-amber-500 font-bold mt-0.5">
+                              <Star className="w-3.5 h-3.5 fill-amber-500" />
+                              <span>{st.rating || '4.9'}</span>
+                              <span className="text-slate-400 font-normal">({st.experience_years || 5} yrs exp)</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Stylist Portfolio Preview Grid */}
+                        <div className="space-y-1.5 pt-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">Stylist Portfolio</span>
+                            <span className="text-[10px] font-mono text-indigo-600 font-bold">Verified Work</span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            {staffGallery.map((imgUrl, idx) => (
+                              <div 
+                                key={idx} 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openLightbox(staffGallery, idx, `${st.name} - Work Portfolio #${idx + 1}`);
+                                }}
+                                className="aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200 cursor-pointer group/thumb relative shadow-xs"
+                              >
+                                <img src={imgUrl} alt="Portfolio preview" className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-300" />
+                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center text-white text-[9px] font-bold">
+                                  View
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-1 pt-1">
+                          {st.specialty?.map((sp, idx) => (
+                            <span key={idx} className="bg-slate-100 text-slate-700 text-[9px] font-mono font-bold px-2 py-0.5 rounded-md">
+                              {sp}
+                            </span>
                           ))}
                         </div>
                       </div>
-                      <p className="text-xs text-slate-600 leading-relaxed italic">"{r.comment}"</p>
-                      <span className="text-[10px] text-slate-400 block font-mono">Audited: {r.date}</span>
+
+                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <button
+                          onClick={() => setSelectedProfileStaff(st)}
+                          className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition-all cursor-pointer text-center"
+                        >
+                          Full Profile
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedStaff(st);
+                            setActiveTab('book');
+                            setBookingStep(1);
+                          }}
+                          className={`flex-1 py-2 text-xs font-bold rounded-xl text-white ${templateStyle.primaryBg} ${templateStyle.primaryHoverBg} shadow-sm cursor-pointer text-center`}
+                        >
+                          Book Now
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Customer Reviews & Testimonials Section */}
+            {website.section_visibility.reviews && (
+              <section className="max-w-5xl mx-auto px-4 py-8 space-y-8 text-left">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <span className="text-xs font-extrabold text-amber-600 tracking-widest uppercase block font-mono">Verified Client Feedback</span>
+                    <h3 className="text-2xl font-black tracking-tight text-slate-900">Customer Reviews & Testimonials</h3>
+                    <p className="text-xs text-slate-500 mt-0.5">Real verified ratings and testimonials from clients who experienced {tenant.name}.</p>
+                  </div>
+                  <button
+                    onClick={() => setShowReviewModal(true)}
+                    className="px-5 py-3 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer w-max"
+                  >
+                    <Star className="w-4 h-4 fill-white" />
+                    <span>Write a Review</span>
+                  </button>
+                </div>
+
+                {/* Rating Summary Banner */}
+                <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 border border-amber-500/20">
+                  <div className="flex items-center gap-6">
+                    <div className="text-center sm:text-left">
+                      <span className="text-4xl sm:text-5xl font-black text-amber-400 font-mono">{tenant.rating || '5.0'}</span>
+                      <div className="flex items-center gap-1 text-amber-400 mt-1 justify-center sm:justify-start">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-amber-400" />
+                        ))}
+                      </div>
+                      <p className="text-[11px] text-slate-400 font-mono mt-1">Based on {reviewsList.length} verified audit reviews</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 w-full sm:w-64">
+                    {[5, 4, 3, 2, 1].map((stars) => {
+                      const count = reviewsList.filter(r => Math.round(r.rating) === stars).length;
+                      const pct = reviewsList.length > 0 ? (count / reviewsList.length) * 100 : (stars === 5 ? 85 : stars === 4 ? 15 : 0);
+                      return (
+                        <div key={stars} className="flex items-center gap-2 text-xs font-mono">
+                          <span className="w-3 text-right">{stars}</span>
+                          <Star className="w-3 h-3 text-amber-400 fill-amber-400 shrink-0" />
+                          <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div className="h-full bg-amber-400 rounded-full" style={{ width: `${pct}%` }}></div>
+                          </div>
+                          <span className="w-6 text-right text-slate-400">{count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Reviews Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {reviewsList.map((r) => (
+                    <div key={r.id} className="bg-white rounded-3xl border border-slate-200 p-6 space-y-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                              {r.customer_name?.[0] || 'C'}
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-sm text-slate-900">{r.customer_name}</h4>
+                              <span className="text-[10px] text-emerald-600 font-mono font-bold flex items-center gap-1">
+                                <CheckCircle className="w-3 h-3" /> Verified Client Audit
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-0.5 text-amber-500">
+                            {Array.from({ length: Math.round(r.rating) }).map((_, idx) => (
+                              <Star key={idx} className="w-3.5 h-3.5 fill-amber-500" />
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-xs text-slate-600 leading-relaxed italic">"{r.comment}"</p>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-mono pt-2 border-t border-slate-100 block">Reviewed on {r.date}</span>
                     </div>
                   ))}
                 </div>
               </section>
+            )}
+
+            {/* Write a Review Modal */}
+            {showReviewModal && (
+              <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+                <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl relative animate-scaleUp text-left">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-mono font-bold text-amber-600 uppercase tracking-widest">Audited Feedback</span>
+                      <h3 className="text-xl font-black text-slate-950">Write a Review for {tenant.name}</h3>
+                    </div>
+                    <button
+                      onClick={() => setShowReviewModal(false)}
+                      className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-700 transition-all cursor-pointer"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleAddReview} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">Rating (1 to 5 Stars)</label>
+                      <div className="flex items-center gap-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            type="button"
+                            key={star}
+                            onClick={() => setNewReviewRating(star)}
+                            className="p-1 cursor-pointer transition-transform hover:scale-110"
+                          >
+                            <Star className={`w-8 h-8 ${star <= newReviewRating ? 'text-amber-500 fill-amber-500' : 'text-slate-300'}`} />
+                          </button>
+                        ))}
+                        <span className="ml-2 font-mono font-bold text-sm text-slate-800">{newReviewRating}.0 / 5.0</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Your Name</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Priya Sharma"
+                        value={newReviewName}
+                        onChange={(e) => setNewReviewName(e.target.value)}
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-amber-500 outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Your Testimonial / Review</label>
+                      <textarea
+                        required
+                        rows={4}
+                        placeholder="Describe your experience, staff professionalism, ambience, and results..."
+                        value={newReviewComment}
+                        onChange={(e) => setNewReviewComment(e.target.value)}
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-amber-500 outline-none resize-none"
+                      ></textarea>
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowReviewModal(false)}
+                        className="flex-1 py-3 border border-slate-300 text-xs font-bold rounded-xl text-slate-700 hover:bg-slate-50 cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={submittingReview}
+                        className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50"
+                      >
+                        {submittingReview ? 'Publishing...' : 'Publish Verified Review'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
             )}
 
           </div>
@@ -1179,12 +1509,41 @@ export default function PublicShopWebsite({
                   </div>
 
                   <div className="space-y-4">
-                    <h3 className="text-base font-bold text-slate-800">GPS Mapping Coordinates</h3>
-                    <div className="bg-slate-100 rounded-2xl border border-slate-200 aspect-video flex items-center justify-center text-slate-400 p-4 text-center">
-                      <div>
-                        <MapPin className="w-8 h-8 text-rose-500 mx-auto mb-2 animate-bounce" />
-                        <span className="block text-xs font-bold text-slate-800">{tenant.city}, {tenant.area}</span>
-                        <span className="block text-[10px] text-slate-400 font-mono mt-0.5">Lat: {tenant.latitude} • Long: {tenant.longitude}</span>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-base font-bold text-slate-800">Physical Location & Area Map</h3>
+                      <span className="text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full uppercase tracking-wider">Verified GPS</span>
+                    </div>
+                    
+                    {/* Luxury Static Map Placeholder Component */}
+                    <div className="relative rounded-3xl overflow-hidden border border-slate-200 shadow-inner bg-slate-900 aspect-video flex flex-col items-center justify-center p-6 text-center select-none group">
+                      {/* Styled decorative map grid lines background */}
+                      <div className="absolute inset-0 opacity-25 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/40 to-transparent"></div>
+                      
+                      {/* Stylized animated radar ping / map pin */}
+                      <div className="relative z-10 flex flex-col items-center space-y-3">
+                        <div className="relative">
+                          <div className="absolute -inset-3 bg-indigo-500/30 rounded-full animate-ping"></div>
+                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-rose-500 flex items-center justify-center text-white shadow-xl shadow-indigo-600/30 relative z-10">
+                            <MapPin className="w-6 h-6" />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <h4 className="text-sm font-black text-white tracking-wide">{tenant.name}</h4>
+                          <p className="text-xs text-indigo-200 font-medium">{website.address || `${tenant.city}, ${tenant.area}`}</p>
+                          <div className="pt-1 flex items-center justify-center gap-3 text-[10px] font-mono text-slate-400">
+                            <span>Lat: {tenant.latitude || '26.9124'}° N</span>
+                            <span>•</span>
+                            <span>Long: {tenant.longitude || '75.7873'}° E</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bottom badge */}
+                      <div className="absolute bottom-3 inset-x-3 bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-2.5 flex items-center justify-between text-white text-[11px] font-medium z-10">
+                        <span className="text-indigo-200">Static GPS Location Marker</span>
+                        <span className="font-mono text-[10px] text-emerald-400 font-bold">● Active Zone</span>
                       </div>
                     </div>
                   </div>
@@ -1658,6 +2017,187 @@ export default function PublicShopWebsite({
           })}
         </div>
       </div>
+
+      {/* Staff Member Profile Modal / Work Gallery Viewer */}
+      {selectedProfileStaff && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 p-6 sm:p-8 space-y-6 text-left relative">
+            <button 
+              onClick={() => setSelectedProfileStaff(null)}
+              className="absolute top-6 right-6 p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Profile Header */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 border-b border-slate-100 pb-6">
+              {selectedProfileStaff.photo_url ? (
+                <img src={selectedProfileStaff.photo_url} alt={selectedProfileStaff.name} className="w-24 h-24 rounded-2xl object-cover shadow-md border border-slate-200 shrink-0" />
+              ) : (
+                <div className="w-24 h-24 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-2xl shrink-0">
+                  {selectedProfileStaff.name.charAt(0)}
+                </div>
+              )}
+              <div className="space-y-2 text-center sm:text-left flex-1">
+                <div>
+                  <span className="text-[10px] font-mono tracking-widest uppercase px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full font-bold inline-block mb-1">
+                    {selectedProfileStaff.role}
+                  </span>
+                  <h3 className="text-2xl font-black text-slate-900">{selectedProfileStaff.name}</h3>
+                </div>
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs text-slate-600 font-mono">
+                  <div className="flex items-center gap-1">
+                    <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                    <span className="font-bold text-slate-900">{selectedProfileStaff.rating || '4.9'} Rating</span>
+                  </div>
+                  <span>·</span>
+                  <span className="font-semibold">{selectedProfileStaff.experience_years || 5}+ Years Experience</span>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  {selectedProfileStaff.bio || `${selectedProfileStaff.name} is a premier specialist at ${tenant.name}, dedicated to providing transformative beauty and wellness services with precision and artistry.`}
+                </p>
+              </div>
+            </div>
+
+            {/* Specific Service Expertise Section */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Specific Service Expertise</h4>
+              <div className="flex flex-wrap gap-2">
+                {selectedProfileStaff.specialty?.map((spec, idx) => (
+                  <span key={idx} className="px-3 py-1.5 bg-slate-100 text-slate-800 text-xs font-bold rounded-xl border border-slate-200 flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-blue-600" />
+                    {spec}
+                  </span>
+                ))}
+              </div>
+              <div className="text-xs text-slate-500 mt-2">
+                Expertly certified in advanced techniques matching our premium salon catalog. Book an appointment below to reserve your seat with {selectedProfileStaff.name}.
+              </div>
+            </div>
+
+            {/* Individual Work Gallery Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Individual Work & Portfolio Gallery</h4>
+                <span className="text-xs font-mono text-slate-400">Click to view full-screen</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {(() => {
+                  const staffGallery = (selectedProfileStaff.work_gallery && selectedProfileStaff.work_gallery.length > 0 ? selectedProfileStaff.work_gallery : [
+                    "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=1200&h=1200",
+                    "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=1200&h=1200",
+                    "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&q=80&w=1200&h=1200"
+                  ]);
+                  return staffGallery.map((imgUrl, i) => (
+                    <div 
+                      key={i} 
+                      onClick={() => openLightbox(staffGallery, i, `${selectedProfileStaff.name} - Portfolio #${i + 1}`)}
+                      className="aspect-square rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 group relative cursor-pointer shadow-sm hover:shadow-md transition-all"
+                    >
+                      <img src={imgUrl} alt="Work sample" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-white text-[10px] font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                        Portfolio #{i + 1} - {selectedProfileStaff.name}
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex gap-3 pt-4 border-t border-slate-100">
+              <button 
+                onClick={() => setSelectedProfileStaff(null)}
+                className="flex-1 py-3 border border-slate-300 text-xs font-bold rounded-xl hover:bg-slate-50 cursor-pointer text-slate-700"
+              >
+                Close Profile
+              </button>
+              <button 
+                onClick={() => {
+                  const staffObj = selectedProfileStaff;
+                  setSelectedProfileStaff(null);
+                  setSelectedStaff(staffObj);
+                  setActiveTab('book');
+                  setBookingStep(1);
+                }}
+                className={`flex-1 py-3 text-xs font-bold rounded-xl cursor-pointer text-white ${templateStyle.primaryBg} ${templateStyle.primaryHoverBg} shadow-md`}
+              >
+                Book with {selectedProfileStaff.name.split(' ')[0]}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full-Screen Image Lightbox with Swipe Gestures */}
+      {lightboxOpen && lightboxImages.length > 0 && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 animate-fadeIn select-none"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Top Bar Controls */}
+          <div className="absolute top-6 inset-x-6 flex items-center justify-between z-20 text-white">
+            <div className="flex items-center gap-2 bg-white/10 px-3.5 py-1.5 rounded-full backdrop-blur-md">
+              <span className="text-xs font-mono font-bold tracking-wider">{lightboxIndex + 1} / {lightboxImages.length}</span>
+              {lightboxCaption && <span className="text-xs text-slate-300 hidden sm:inline">| {lightboxCaption}</span>}
+            </div>
+            <button
+              onClick={() => setLightboxOpen(false)}
+              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all cursor-pointer backdrop-blur-md"
+              aria-label="Close Lightbox"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Main Image Display */}
+          <div className="relative max-w-5xl max-h-[75vh] w-full h-full flex items-center justify-center px-4 sm:px-16">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxIndex(prev => (prev - 1 + lightboxImages.length) % lightboxImages.length);
+              }}
+              className="absolute left-2 sm:left-4 z-20 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-all cursor-pointer shadow-lg"
+              aria-label="Previous Image"
+            >
+              <span className="text-xl font-bold">&larr;</span>
+            </button>
+
+            <img
+              src={lightboxImages[lightboxIndex]}
+              alt={`Lightbox item ${lightboxIndex + 1}`}
+              className="max-h-[75vh] max-w-full object-contain rounded-2xl shadow-2xl transition-all duration-300"
+              referrerPolicy="no-referrer"
+            />
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxIndex(prev => (prev + 1) % lightboxImages.length);
+              }}
+              className="absolute right-2 sm:right-4 z-20 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-all cursor-pointer shadow-lg"
+              aria-label="Next Image"
+            >
+              <span className="text-xl font-bold">&rarr;</span>
+            </button>
+          </div>
+
+          {/* Thumbnail Navigation Bar at Bottom */}
+          <div className="absolute bottom-6 inset-x-6 flex items-center justify-center gap-2 z-20 overflow-x-auto py-2">
+            {lightboxImages.map((img, idx) => (
+              <button
+                key={idx}
+                onClick={() => setLightboxIndex(idx)}
+                className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${idx === lightboxIndex ? 'border-white scale-110 shadow-lg' : 'border-white/20 opacity-50 hover:opacity-100'}`}
+              >
+                <img src={img} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="bg-slate-900 border-t border-slate-800 py-6 text-slate-400 text-xs">

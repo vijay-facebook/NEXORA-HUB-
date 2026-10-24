@@ -1,0 +1,864 @@
+{
+  "profiles": [],
+  "tenants": [
+    {
+      "id": "ten_aura",
+      "owner_id": "usr_owner_aura",
+      "name": "Aura Premium Salon & Bridal",
+      "business_type": "salons",
+      "phone": "+91 98765 43210",
+      "email": "aura@nexora.io",
+      "address": "Plot 42, Girdhar Marg, Sector 9, Malviya Nagar",
+      "city": "Jaipur",
+      "state": "Rajasthan",
+      "area": "Malviya Nagar",
+      "logo_url": "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=200&h=200",
+      "banner_url": "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=1200",
+      "description": "A luxury lifestyle beauty salon specializing in premium bridal makeovers, global hair transformations, and organic facials.",
+      "approval_status": "approved",
+      "is_active": true,
+      "latitude": 26.8529,
+      "longitude": 75.8048,
+      "rating": 4.9,
+      "reviews_count": 142,
+      "starting_price": 950,
+      "is_verified": true,
+      "created_at": "2026-10-16T10:18:31.574Z",
+      "updated_at": "2026-10-16T10:18:31.574Z",
+      "ranking_score": 78.8,
+      "ranking_breakdown": {
+        "qr_payments_score": 90,
+        "bookings_score": 40,
+        "reviews_score": 84,
+        "repeat_customers_score": 100,
+        "referrals_score": 100,
+        "profile_completion_score": 100,
+        "total_score": 78.8
+      }
+    },
+    {
+      "id": "ten_imperial",
+      "owner_id": "usr_owner_imperial",
+      "name": "The Imperial Royal Barbers",
+      "business_type": "barber shops",
+      "phone": "+91 99999 88888",
+      "email": "imperial@nexora.io",
+      "address": "12, Ashok Marg, Near C-Scheme Post Office, C-Scheme",
+      "city": "Jaipur",
+      "state": "Rajasthan",
+      "area": "C-Scheme",
+      "logo_url": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=200&h=200",
+      "banner_url": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=1200",
+      "description": "A traditional men's grooming lounge reviving the fine art of hot towel shaves, meticulous haircuts, and royal beard treatments.",
+      "approval_status": "approved",
+      "is_active": true,
+      "latitude": 26.9116,
+      "longitude": 75.8021,
+      "rating": 4.8,
+      "reviews_count": 98,
+      "starting_price": 250,
+      "is_verified": true,
+      "created_at": "2026-10-16T10:18:31.574Z",
+      "updated_at": "2026-10-16T10:18:31.574Z",
+      "ranking_score": 53.6,
+      "ranking_breakdown": {
+        "qr_payments_score": 15,
+        "bookings_score": 40,
+        "reviews_score": 77,
+        "repeat_customers_score": 100,
+        "referrals_score": 75,
+        "profile_completion_score": 100,
+        "total_score": 53.6
+      }
+    },
+    {
+      "id": "ten_zen",
+      "owner_id": "usr_owner_zen",
+      "name": "Siam Zen Wellness Spa",
+      "business_type": "spas",
+      "phone": "+91 95555 44444",
+      "email": "zen@nexora.io",
+      "address": "B-8, Gali No. 3, Govind Marg, Raja Park",
+      "city": "Jaipur",
+      "state": "Rajasthan",
+      "area": "Raja Park",
+      "logo_url": "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=200&h=200",
+      "banner_url": "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=1200",
+      "description": "Indulge in ancient therapeutic rituals. We offer deep-tissue Thai massages, aromatherapy, and hot stone stress-relieving sessions.",
+      "approval_status": "approved",
+      "is_active": true,
+      "latitude": 26.8993,
+      "longitude": 75.8315,
+      "rating": 4.7,
+      "reviews_count": 64,
+      "starting_price": 1200,
+      "is_verified": true,
+      "created_at": "2026-10-16T10:18:31.574Z",
+      "updated_at": "2026-10-16T10:18:31.574Z",
+      "ranking_score": 37.2,
+      "ranking_breakdown": {
+        "qr_payments_score": 15,
+        "bookings_score": 40,
+        "reviews_score": 76,
+        "repeat_customers_score": 0,
+        "referrals_score": 50,
+        "profile_completion_score": 100,
+        "total_score": 37.2
+      }
+    }
+  ],
+  "website_templates": [
+    {
+      "id": "tpl_luxury",
+      "code": "luxury_beauty",
+      "name": "Luxury Beauty Salon",
+      "description": "A premium black, gold, and clean white template designed for high-end salons and bridal studios.",
+      "target_business": "Salons, bridal, makeup studios",
+      "theme_config": {
+        "primaryColor": "#D4AF37",
+        "secondaryColor": "#1E1E1E",
+        "backgroundColor": "#FFFFFF",
+        "textColor": "#0F172A",
+        "fontFamily": "Outfit"
+      },
+      "layout_config": {},
+      "is_active": true,
+      "display_order": 1
+    },
+    {
+      "id": "tpl_barber",
+      "code": "modern_barber",
+      "name": "Modern Barber Shop",
+      "description": "A bold, dark grey, steel-toned layout tailored for male grooming and beard studios.",
+      "target_business": "Barbershops, men's grooming",
+      "theme_config": {
+        "primaryColor": "#2563EB",
+        "secondaryColor": "#1E293B",
+        "backgroundColor": "#F8FAFC",
+        "textColor": "#0F172A",
+        "fontFamily": "Inter"
+      },
+      "layout_config": {},
+      "is_active": true,
+      "display_order": 2
+    },
+    {
+      "id": "tpl_spa",
+      "code": "spa_wellness",
+      "name": "Spa & Wellness",
+      "description": "A soft beige and calming green-toned relaxing aesthetic perfect for massage and therapy centers.",
+      "target_business": "Spas, massage, therapy clinics",
+      "theme_config": {
+        "primaryColor": "#059669",
+        "secondaryColor": "#F5F5DC",
+        "backgroundColor": "#FCFBF7",
+        "textColor": "#1E293B",
+        "fontFamily": "Inter"
+      },
+      "layout_config": {},
+      "is_active": true,
+      "display_order": 3
+    }
+  ],
+  "tenant_websites": [
+    {
+      "id": "web_aura",
+      "tenant_id": "ten_aura",
+      "template_id": "tpl_luxury",
+      "slug": "aura-premium",
+      "website_title": "Aura Premium Salon | Malviya Nagar",
+      "hero_title": "Reveal Your True Radiance",
+      "hero_subtitle": "Experience elite beauty styling, luxury bridal care, and premium hair treatments tailored by industry maestros in Jaipur.",
+      "about_text": "Aura Premium has been the epitome of luxury makeovers in Malviya Nagar for over five years. We bring top-of-the-line services, state-of-the-art products, and unmatched attention to detail directly to you.",
+      "phone": "+91 98765 43210",
+      "whatsapp_number": "+919876543210",
+      "email": "aura@nexora.io",
+      "address": "Plot 42, Girdhar Marg, Sector 9, Malviya Nagar, Jaipur",
+      "instagram_url": "https://instagram.com/aura_premium",
+      "facebook_url": "https://facebook.com/aura_premium",
+      "section_visibility": {
+        "hero": true,
+        "services": true,
+        "gallery": true,
+        "reviews": true,
+        "location": true,
+        "contact": true,
+        "offers": true
+      },
+      "is_published": true,
+      "published_at": "2026-10-16T10:18:31.574Z"
+    },
+    {
+      "id": "web_imperial",
+      "tenant_id": "ten_imperial",
+      "template_id": "tpl_barber",
+      "slug": "imperial-barbers",
+      "website_title": "The Imperial Royal Barbers | C-Scheme",
+      "hero_title": "Crafting Rajasthan's Finest Gentlemen",
+      "hero_subtitle": "Step into our royal grooming club. Enjoy hot towel shaves, beard architecture, and premium haircuts in Jaipur's most masculine lounge.",
+      "about_text": "At The Imperial, grooming is a noble ritual, not just a routine chore. We maintain the rich traditions of classic barbershops with a modern edge, serving Jaipur's discerning elite with precision.",
+      "phone": "+91 99999 88888",
+      "whatsapp_number": "+919999988888",
+      "email": "imperial@nexora.io",
+      "address": "12, Ashok Marg, Near C-Scheme Post Office, C-Scheme, Jaipur",
+      "instagram_url": "https://instagram.com/imperial_barbers",
+      "facebook_url": "https://facebook.com/imperial_barbers",
+      "section_visibility": {
+        "hero": true,
+        "services": true,
+        "gallery": true,
+        "reviews": true,
+        "location": true,
+        "contact": true,
+        "offers": true
+      },
+      "is_published": true,
+      "published_at": "2026-10-16T10:18:31.574Z"
+    },
+    {
+      "id": "web_zen",
+      "tenant_id": "ten_zen",
+      "template_id": "tpl_spa",
+      "slug": "siam-spa",
+      "website_title": "Siam Zen Wellness Spa | Raja Park",
+      "hero_title": "Rejuvenate Your Mind & Soul",
+      "hero_subtitle": "An authentic sanctuary of peace in Raja Park. Unwind with stress-melting Thai treatments, luxury facials, and hot stone therapy.",
+      "about_text": "Siam Zen Spa offers an exclusive relaxation escape from Jaipur's bustling lifestyle. Our therapists are trained in the highest disciplines of Thai physical therapies, ensuring premium relief and wellness.",
+      "phone": "+91 95555 44444",
+      "whatsapp_number": "+919555544444",
+      "email": "zen@nexora.io",
+      "address": "B-8, Gali No. 3, Govind Marg, Raja Park, Jaipur",
+      "section_visibility": {
+        "hero": true,
+        "services": true,
+        "gallery": true,
+        "reviews": true,
+        "location": true,
+        "contact": true,
+        "offers": true
+      },
+      "is_published": true,
+      "published_at": "2026-10-16T10:18:31.574Z"
+    }
+  ],
+  "services": [
+    {
+      "id": "ser_aura_1",
+      "tenant_id": "ten_aura",
+      "category_name": "Bridal",
+      "name": "Royal HD Bridal Makeup",
+      "description": "Flawless HD airbrush makeup package including hair setting, dupatta draping, and customized skin preparation.",
+      "price": 8500,
+      "duration_minutes": 150,
+      "image_url": "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&q=80&w=200",
+      "status": "active",
+      "is_featured": true
+    },
+    {
+      "id": "ser_aura_2",
+      "tenant_id": "ten_aura",
+      "category_name": "Hair Care",
+      "name": "Global Hair Keratin Infusion",
+      "description": "Rich keratin bonding therapy to smooth frizz, reinforce cuticles, and add long-lasting luminous shine.",
+      "price": 4500,
+      "duration_minutes": 120,
+      "image_url": "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&q=80&w=200",
+      "status": "active",
+      "is_featured": true
+    },
+    {
+      "id": "ser_aura_3",
+      "tenant_id": "ten_aura",
+      "category_name": "Facial",
+      "name": "O3+ Radiance Glow Therapy",
+      "description": "Luxury skin brightening facial with multi-vitamin infusions to target uneven tone and boost hydration.",
+      "price": 1800,
+      "duration_minutes": 60,
+      "status": "active",
+      "is_featured": false
+    },
+    {
+      "id": "ser_aura_4",
+      "tenant_id": "ten_aura",
+      "category_name": "Hair Care",
+      "name": "Elite Hair Cut & Style Blowout",
+      "description": "Creative style consultation, professional hair wash, customized cutting, and standard volume blowout.",
+      "price": 950,
+      "duration_minutes": 45,
+      "status": "active",
+      "is_featured": true
+    },
+    {
+      "id": "ser_imp_1",
+      "tenant_id": "ten_imperial",
+      "category_name": "Haircuts",
+      "name": "Gentleman's Royal Haircut",
+      "description": "Precision shears and clipper haircut, energizing tea tree wash, hot-towel neck shave, and bespoke styling.",
+      "price": 450,
+      "duration_minutes": 40,
+      "image_url": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=200",
+      "status": "active",
+      "is_featured": true
+    },
+    {
+      "id": "ser_imp_2",
+      "tenant_id": "ten_imperial",
+      "category_name": "Beard Grooming",
+      "name": "Imperial Beard Sculpting & Shave",
+      "description": "Intricate beard trim shaped with straight razor lining, conditioned with cedarwood oil and hot towel relaxer.",
+      "price": 250,
+      "duration_minutes": 30,
+      "image_url": "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&q=80&w=200",
+      "status": "active",
+      "is_featured": true
+    },
+    {
+      "id": "ser_imp_3",
+      "tenant_id": "ten_imperial",
+      "category_name": "Skin Treatment",
+      "name": "Charcoal Detan Face Therapy",
+      "description": "Active charcoal deep-pore cleansing peel and cooling aloe-vera compress to reverse sun damage and pollution.",
+      "price": 600,
+      "duration_minutes": 30,
+      "status": "active",
+      "is_featured": false
+    },
+    {
+      "id": "ser_imp_4",
+      "tenant_id": "ten_imperial",
+      "category_name": "Hair Care",
+      "name": "Anti-Dandruff Royal Hair Spa",
+      "description": "Nourishing scalp massage with therapeutic oils, protein hair mask, and deep steam hydration treatment.",
+      "price": 1200,
+      "duration_minutes": 50,
+      "status": "active",
+      "is_featured": true
+    },
+    {
+      "id": "ser_zen_1",
+      "tenant_id": "ten_zen",
+      "category_name": "Massage",
+      "name": "Authentic Thai Full Body Therapy",
+      "description": "Ancient dry-stretching massage focusing on pressure points to unlock tight joints and increase flexibility.",
+      "price": 2400,
+      "duration_minutes": 90,
+      "image_url": "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=200",
+      "status": "active",
+      "is_featured": true
+    },
+    {
+      "id": "ser_zen_2",
+      "tenant_id": "ten_zen",
+      "category_name": "Massage",
+      "name": "Swedish Deep Stress-Relief",
+      "description": "Fluid, circular kneading with hot essential oils targeting deep muscle fatigue to trigger intense relaxation.",
+      "price": 2200,
+      "duration_minutes": 75,
+      "image_url": "https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?auto=format&fit=crop&q=80&w=200",
+      "status": "active",
+      "is_featured": true
+    },
+    {
+      "id": "ser_zen_3",
+      "tenant_id": "ten_zen",
+      "category_name": "Facial",
+      "name": "Calming Aromatherapy Facial",
+      "description": "Gentle natural facial with lavender extracts and cooling pack to hydrate sensitive skin and clear fatigue.",
+      "price": 1500,
+      "duration_minutes": 60,
+      "status": "active",
+      "is_featured": false
+    }
+  ],
+  "staff": [
+    {
+      "id": "stf_aura_1",
+      "tenant_id": "ten_aura",
+      "name": "Priya Sharma",
+      "role": "Master Aesthetician",
+      "specialty": [
+        "Bridal Makeups",
+        "Facials"
+      ],
+      "photo_url": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150&h=150",
+      "rating": 4.95,
+      "experience_years": 8
+    },
+    {
+      "id": "stf_aura_2",
+      "tenant_id": "ten_aura",
+      "name": "Rahul Verma",
+      "role": "Art Director",
+      "specialty": [
+        "Hair Coloring",
+        "Hair Keratin"
+      ],
+      "photo_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150&h=150",
+      "rating": 4.88,
+      "experience_years": 11
+    },
+    {
+      "id": "stf_imp_1",
+      "tenant_id": "ten_imperial",
+      "name": "Vikram Singh",
+      "role": "Lead Barber Maestro",
+      "specialty": [
+        "Beard Sculpting",
+        "Haircuts"
+      ],
+      "photo_url": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150&h=150",
+      "rating": 4.9,
+      "experience_years": 9
+    },
+    {
+      "id": "stf_imp_2",
+      "tenant_id": "ten_imperial",
+      "name": "Amit Yadav",
+      "role": "Beard Architect",
+      "specialty": [
+        "Hot Towel Shave",
+        "Detan"
+      ],
+      "photo_url": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150&h=150",
+      "rating": 4.75,
+      "experience_years": 5
+    },
+    {
+      "id": "stf_zen_1",
+      "tenant_id": "ten_zen",
+      "name": "Ananya Thaimassage",
+      "role": "Senior Holistic Therapist",
+      "specialty": [
+        "Thai Massage",
+        "Deep Tissue"
+      ],
+      "photo_url": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150&h=150",
+      "rating": 4.98,
+      "experience_years": 12
+    }
+  ],
+  "customers": [
+    {
+      "id": "cus_1",
+      "tenant_id": "ten_aura",
+      "full_name": "Sunita Khanna",
+      "phone": "9829012345",
+      "email": "sunita@gmail.com",
+      "status": "active",
+      "crm_tags": [
+        "Regular",
+        "VIP"
+      ],
+      "created_at": "2026-10-16T10:18:31.574Z"
+    },
+    {
+      "id": "cus_2",
+      "tenant_id": "ten_imperial",
+      "full_name": "Rajesh Shrivastav",
+      "phone": "9414098765",
+      "email": "rajesh@gmail.com",
+      "status": "active",
+      "crm_tags": [
+        "VIP"
+      ],
+      "created_at": "2026-10-16T10:18:31.574Z"
+    },
+    {
+      "id": "cus_3",
+      "tenant_id": "ten_zen",
+      "full_name": "Meera Nair",
+      "phone": "9660124578",
+      "status": "active",
+      "crm_tags": [
+        "New"
+      ],
+      "created_at": "2026-10-16T10:18:31.574Z"
+    }
+  ],
+  "appointments": [
+    {
+      "id": "apt_1",
+      "tenant_id": "ten_aura",
+      "customer_id": "cus_1",
+      "service_id": "ser_aura_4",
+      "staff_id": "stf_aura_2",
+      "appointment_date": "2026-07-08",
+      "appointment_time": "11:30 AM",
+      "total_amount": 950,
+      "advance_amount": 237.5,
+      "remaining_amount": 712.5,
+      "status": "confirmed",
+      "payment_status": "advance_paid",
+      "customer_name": "Sunita Khanna",
+      "customer_phone": "9829012345",
+      "notes": "Please wash hair with cold water.",
+      "created_at": "2026-10-16T10:18:31.574Z"
+    },
+    {
+      "id": "apt_2",
+      "tenant_id": "ten_imperial",
+      "customer_id": "cus_2",
+      "service_id": "ser_imp_1",
+      "staff_id": "stf_imp_1",
+      "appointment_date": "2026-07-08",
+      "appointment_time": "04:00 PM",
+      "total_amount": 450,
+      "advance_amount": 112.5,
+      "remaining_amount": 337.5,
+      "status": "pending_payment",
+      "payment_status": "advance_pending",
+      "customer_name": "Rajesh Shrivastav",
+      "customer_phone": "9414098765",
+      "created_at": "2026-10-16T10:18:31.574Z"
+    },
+    {
+      "id": "apt_sim_oj9qp",
+      "tenant_id": "ten_aura",
+      "customer_id": "cus_sim_0odu9",
+      "service_id": "ser_aura_1",
+      "staff_id": "stf_aura_1",
+      "appointment_date": "2026-10-16",
+      "appointment_time": "03:00 PM",
+      "total_amount": 8500,
+      "advance_amount": 2125,
+      "remaining_amount": 6375,
+      "status": "confirmed",
+      "payment_status": "advance_paid",
+      "customer_name": "Aakash Mehta (VIP)",
+      "customer_phone": "9829011223",
+      "notes": "Urgent same-day appointment booked online.",
+      "created_at": "2026-10-16T10:48:59.571Z"
+    },
+    {
+      "id": "apt_sim_moqqs",
+      "tenant_id": "ten_aura",
+      "customer_id": "cus_sim_6azze",
+      "service_id": "ser_aura_1",
+      "staff_id": "stf_aura_2",
+      "appointment_date": "2026-10-16",
+      "appointment_time": "03:00 PM",
+      "total_amount": 8500,
+      "advance_amount": 2125,
+      "remaining_amount": 6375,
+      "status": "confirmed",
+      "payment_status": "advance_paid",
+      "customer_name": "Aakash Mehta (VIP)",
+      "customer_phone": "9829011223",
+      "notes": "Urgent same-day appointment booked online.",
+      "created_at": "2026-10-16T10:52:29.757Z"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "rev_1",
+      "tenant_id": "ten_aura",
+      "customer_name": "Simran J.",
+      "rating": 5,
+      "comment": "Hands down the best bridal makeover experience. Priya is extremely talented and made sure my wedding look was absolutely flawless! Thank you!",
+      "date": "2026-06-15"
+    },
+    {
+      "id": "rev_2",
+      "tenant_id": "ten_aura",
+      "customer_name": "Rohan G.",
+      "rating": 5,
+      "comment": "Very professional hair blowout. The salon has an incredible luxury vibe and the hygiene is top-notch.",
+      "date": "2026-06-28"
+    },
+    {
+      "id": "rev_3",
+      "tenant_id": "ten_imperial",
+      "customer_name": "Divyansh M.",
+      "rating": 5,
+      "comment": "Fabulous hot towel straight razor shave. Vikram has steady hands. Highly recommended for premium beard grooming.",
+      "date": "2026-07-01"
+    },
+    {
+      "id": "rev_4",
+      "tenant_id": "ten_zen",
+      "customer_name": "Anjali S.",
+      "rating": 5,
+      "comment": "The dry Thai massage completely relieved my lower back stiffness. Pure professional bliss. The sage tea was perfect.",
+      "date": "2026-07-03"
+    }
+  ],
+  "wallets": [
+    {
+      "id": "wal_aura",
+      "owner_id": "usr_owner_aura",
+      "owner_type": "tenant",
+      "available_balance": 4800,
+      "pending_balance": 712.5,
+      "lifetime_earned": 15400
+    },
+    {
+      "id": "wal_imperial",
+      "owner_id": "usr_owner_imperial",
+      "owner_type": "tenant",
+      "available_balance": 1450,
+      "pending_balance": 337.5,
+      "lifetime_earned": 5200
+    },
+    {
+      "id": "wal_zen",
+      "owner_id": "usr_owner_zen",
+      "owner_type": "tenant",
+      "available_balance": 3200,
+      "pending_balance": 0,
+      "lifetime_earned": 12400
+    },
+    {
+      "id": "wal_partner_jaipur",
+      "owner_id": "usr_partner_jaipur",
+      "owner_type": "partner",
+      "available_balance": 850,
+      "pending_balance": 150,
+      "lifetime_earned": 2450
+    }
+  ],
+  "transactions": [
+    {
+      "id": "tx_1",
+      "wallet_id": "wal_aura",
+      "amount": 237.5,
+      "type": "credit",
+      "purpose": "booking_advance",
+      "status": "completed",
+      "reference_id": "apt_1",
+      "description": "Advance deposit received for Royal Haircut",
+      "created_at": "2026-10-16T10:18:31.574Z"
+    },
+    {
+      "id": "tx_2",
+      "wallet_id": "wal_partner_jaipur",
+      "amount": 150,
+      "type": "credit",
+      "purpose": "commission",
+      "status": "completed",
+      "reference_id": "apt_1",
+      "description": "Partner 10% activation commission - Aura Premium Salon",
+      "created_at": "2026-10-16T10:18:31.574Z"
+    }
+  ],
+  "payouts": [
+    {
+      "id": "pay_1",
+      "wallet_id": "wal_aura",
+      "amount": 4800,
+      "payout_time": "2026-07-06T22:00:00.000Z",
+      "status": "completed",
+      "ledger_hash": "0x89fd10b27efdae11a687efc9022ee",
+      "created_at": "2026-07-06T22:05:00-07:00"
+    },
+    {
+      "id": "pay_2",
+      "wallet_id": "wal_imperial",
+      "amount": 1450,
+      "payout_time": "2026-07-06T22:00:00.000Z",
+      "status": "completed",
+      "ledger_hash": "0xcd389f410badde1127eef89aa022ff",
+      "created_at": "2026-07-06T22:05:00-07:00"
+    }
+  ],
+  "partners": [
+    {
+      "id": "usr_partner_jaipur",
+      "user_id": "usr_partner_jaipur",
+      "full_name": "Sanjay Singhal",
+      "phone": "+91 94140 11111",
+      "referral_code": "JAIPUR100",
+      "district": "Jaipur (East)",
+      "status": "active",
+      "created_at": "2026-10-16T10:18:31.574Z"
+    }
+  ],
+  "brand_profiles": [
+    {
+      "id": "brnd_loreal",
+      "user_id": "usr_brand_loreal",
+      "company_name": "L'Oreal Professional",
+      "description": "The global leader in professional hair styling and scientific hair care formulations.",
+      "categories": [
+        "Hair Color",
+        "Hair Care",
+        "Styling Products"
+      ],
+      "contact_email": "pro@loreal.in",
+      "contact_phone": "+91 22 4000 5000",
+      "status": "approved"
+    },
+    {
+      "id": "brnd_wella",
+      "user_id": "usr_brand_wella",
+      "company_name": "Wella Professionals",
+      "description": "Brings color creativity and scalp wellness products directly to premium salons.",
+      "categories": [
+        "Hair Color",
+        "Hair Care"
+      ],
+      "contact_email": "support@wella.com",
+      "contact_phone": "+91 11 3989 2989",
+      "status": "approved"
+    }
+  ],
+  "distributor_profiles": [
+    {
+      "id": "dist_raj_beauty",
+      "user_id": "usr_dist_raj",
+      "company_name": "Rajasthan Beauty Emporium",
+      "description": "Authorized premium distributor for North India, supplying wholesale hair, facial and spa inventory to 350+ certified venues.",
+      "coverage_areas": [
+        "Jaipur",
+        "Jodhpur",
+        "Ajmer",
+        "Udaipur"
+      ],
+      "brand_associations": [
+        "L'Oreal Professional",
+        "Wella Professionals",
+        "Biotique"
+      ],
+      "contact_email": "sales@rajbeauty.com",
+      "contact_phone": "+91 141 2309876",
+      "status": "approved"
+    }
+  ],
+  "brand_products": [
+    {
+      "id": "prd_loreal_1",
+      "brand_id": "brnd_loreal",
+      "name": "Majirel Hair Color Cream 50ml",
+      "category": "Hair Color",
+      "description": "Permanent hair color providing rich, deep, and uniform color payoff with perfect gray coverage.",
+      "benefits": "Long lasting shine, fiber care",
+      "mrp": 450,
+      "image_url": "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&q=80&w=200",
+      "is_sponsored": true
+    },
+    {
+      "id": "prd_loreal_2",
+      "brand_id": "brnd_loreal",
+      "name": "Serie Expert Absolut Repair Shampoo 300ml",
+      "category": "Hair Care",
+      "description": "Deeply reconstructive golden shampoo for instantly restructured damaged hair fibers.",
+      "benefits": "Reduces damage by 77%, non-weigh down",
+      "mrp": 750,
+      "image_url": "https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?auto=format&fit=crop&q=80&w=200",
+      "is_sponsored": false
+    },
+    {
+      "id": "prd_wella_1",
+      "brand_id": "brnd_wella",
+      "name": "Wella Kolestint Developer 1000ml",
+      "category": "Hair Color",
+      "description": "Professional salon-grade cream activator designed for reliable and seamless mixing.",
+      "benefits": "Perfect consistency, homogeneous coloring",
+      "mrp": 1250,
+      "is_sponsored": true
+    }
+  ],
+  "brand_leads": [
+    {
+      "id": "ld_1",
+      "brand_or_distributor_id": "brnd_loreal",
+      "inquirer_name": "Aura Premium Salon",
+      "inquirer_company": "Aura Salon",
+      "inquirer_phone": "+919876543210",
+      "inquirer_email": "aura@nexora.io",
+      "notes": "Need quotation for bulk order of Majirel shade 5.3.",
+      "status": "new",
+      "created_at": "2026-10-16T10:18:31.574Z"
+    }
+  ],
+  "job_candidates": [
+    {
+      "id": "cand_1",
+      "user_id": "usr_cand_1",
+      "full_name": "Manish Solanki",
+      "email": "manish.styles@gmail.com",
+      "phone": "+91 91160 55555",
+      "skills": [
+        "Beard Shaving",
+        "Hair Cutting",
+        "Hair Tattooing"
+      ],
+      "experience_years": 4,
+      "preferred_location": "Jaipur (C-Scheme)",
+      "created_at": "2026-10-16T10:18:31.574Z"
+    }
+  ],
+  "job_posts": [
+    {
+      "id": "job_1",
+      "tenant_id": "ten_imperial",
+      "title": "Senior Gentleman Stylist",
+      "category": "Barbers",
+      "description": "Seeking a professional stylist proficient in razor lining, hot towel royal shaves, and trending hair designs.",
+      "salary_range": "Rs. 25,000 - 35,000 / month",
+      "job_type": "Full-time",
+      "location": "C-Scheme, Jaipur",
+      "status": "active",
+      "created_at": "2026-10-16T10:18:31.574Z"
+    },
+    {
+      "id": "job_2",
+      "tenant_id": "ten_aura",
+      "title": "Professional Bridal Makeup Artist",
+      "category": "Makeup Artists",
+      "description": "Looking for an expert makeup artist with solid HD airbrush work and active bridal portfolio.",
+      "salary_range": "Rs. 30,000 - 50,000 / month",
+      "job_type": "Commission-based",
+      "location": "Malviya Nagar, Jaipur",
+      "status": "active",
+      "created_at": "2026-10-16T10:18:31.574Z"
+    }
+  ],
+  "job_applications": [
+    {
+      "id": "appl_1",
+      "job_post_id": "job_1",
+      "candidate_id": "cand_1",
+      "status": "applied",
+      "created_at": "2026-10-16T10:18:31.574Z"
+    }
+  ],
+  "audit_logs": [
+    {
+      "id": "aud_vdn10lk",
+      "event": "ai_schedule_conflict_resolved",
+      "tenant_id": "ten_aura",
+      "reference_id": "apt_sim_moqqs",
+      "description": "Booking #apt_sim_moqqs reassigned to Rahul Verma via AI Schedule Conflict Notification.",
+      "created_at": "2026-10-16T10:52:42.048Z"
+    }
+  ],
+  "schedule_notifications": [
+    {
+      "id": "notif_conflict_02aggis",
+      "tenant_id": "ten_aura",
+      "type": "conflict",
+      "category": "conflict",
+      "severity": "critical",
+      "title": "Schedule Overlap: Priya Sharma Double-Booked",
+      "message": "Priya Sharma has 2 simultaneous appointments scheduled on 2026-10-16 at 03:00 PM (Royal HD Bridal Makeup & Royal HD Bridal Makeup). Simultaneous bookings risk major customer delays.",
+      "suggested_action": "Reassign booking #apt_sim_moqqs to Rahul Verma or adjust slot time.",
+      "affected_staff_ids": [
+        "stf_aura_1"
+      ],
+      "affected_staff_names": [
+        "Priya Sharma"
+      ],
+      "affected_booking_ids": [
+        "apt_sim_oj9qp",
+        "apt_sim_moqqs"
+      ],
+      "affected_date": "2026-10-16",
+      "affected_time": "03:00 PM",
+      "created_at": "2026-10-16T10:52:33.793Z",
+      "is_read": true,
+      "is_resolved": true,
+      "ai_generated": true,
+      "resolution_note": "Reassigned to Rahul Verma"
+    }
+  ]
+}

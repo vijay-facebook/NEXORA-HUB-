@@ -8,14 +8,16 @@ import {
   Search, MapPin, Sparkles, Filter, ShieldCheck, 
   Flame, Award, ShoppingBag, Eye, Volume2, VolumeX, ArrowRight,
   TrendingUp, Check, Star, Navigation, Clock, Gift,
-  Compass, Mic, Copy, Smartphone, Building, Users,
-  CheckCircle, Truck, Info, Globe, Activity, Wifi, Play, X, ChevronRight, Briefcase, ShieldAlert
+  Compass, Mic, Copy, Smartphone, Building, Users, User,
+  CheckCircle, Truck, Info, Globe, Activity, Wifi, Play, X, ChevronRight, Briefcase, ShieldAlert, Heart
 } from 'lucide-react';
 import { Tenant, Service } from '../types';
 import GlobalSearch from './GlobalSearch';
 import { SponsoredVideoAds } from './SponsoredVideoAds';
 import { supabase } from '../lib/supabase';
 import { useDebounce } from '../hooks/useDebounce';
+import { motion } from 'framer-motion';
+import { ScrollReveal, StaggerContainer, StaggerItem, HoverCard, Entrance } from './animations/MotionComponents';
 
 interface MarketplaceHomeProps {
   tenants: Tenant[];
@@ -142,8 +144,38 @@ export default function MarketplaceHome({
     performSearch();
   }, [debouncedSearchQuery]);
 
+  // Saved Salons / Wishlist state
+  const [savedSalonIds, setSavedSalonIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('nexora_wishlist_salon_ids');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [showOnlySaved, setShowOnlySaved] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('nexora_wishlist_salon_ids', JSON.stringify(savedSalonIds));
+    } catch (e) {}
+  }, [savedSalonIds]);
+
+  const toggleSaveSalon = (salonId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSavedSalonIds(prev => 
+      prev.includes(salonId) ? prev.filter(id => id !== salonId) : [...prev, salonId]
+    );
+  };
+
   // Filter approved & active shops
-  const approvedSalons = tenants.filter(t => t.approval_status === 'approved' && t.is_active);
+  const approvedSalons = tenants.filter(t => {
+    if (t.approval_status !== 'approved' || !t.is_active) return false;
+    if (showOnlySaved && !savedSalonIds.includes(t.id)) return false;
+    if (selectedLocation !== 'All' && t.area !== selectedLocation && t.city !== selectedLocation) return false;
+    if (verifiedOnly && !(t as any).is_verified) return false;
+    return true;
+  });
 
   // Location GPS Trigger simulation
   const handleDetectLocation = () => {
@@ -343,6 +375,17 @@ export default function MarketplaceHome({
             </div>
 
             <button 
+              onClick={() => {
+                window.history.pushState({}, '', '/client-portal');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }}
+              className="hidden sm:flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer tracking-wider border border-slate-200"
+            >
+              <User className="w-3.5 h-3.5 text-indigo-600" />
+              <span>My Bookings</span>
+            </button>
+
+            <button 
               onClick={() => onNavigateToRole('owner')}
               className="hidden sm:inline-block bg-slate-950 hover:bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-md cursor-pointer uppercase tracking-wider"
             >
@@ -362,42 +405,51 @@ export default function MarketplaceHome({
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-pink-500 via-indigo-500 to-emerald-500"></div>
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <div className="inline-flex items-center gap-1.5 bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-[10px] font-extrabold tracking-widest uppercase px-3 py-1.5 rounded-full mb-6">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Jaipur beauty & wellness marketplace network</span>
-          </div>
+          <Entrance direction="down" delay={0.05} duration={0.4}>
+            <div className="inline-flex items-center gap-1.5 bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-[10px] font-extrabold tracking-widest uppercase px-3 py-1.5 rounded-full mb-6">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Jaipur beauty & wellness marketplace network</span>
+            </div>
+          </Entrance>
           
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight mb-6 text-white leading-none">
-            Salon Ja Rahe Ho?<br />
-            <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-300 bg-clip-text text-transparent font-extrabold">
-              Nexora Kiya Kya?
-            </span>
-          </h1>
+          <Entrance direction="up" delay={0.15} duration={0.5}>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight mb-6 text-white leading-none">
+              Salon Ja Rahe Ho?<br />
+              <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-300 bg-clip-text text-transparent font-extrabold">
+                Nexora Kiya Kya?
+              </span>
+            </h1>
+          </Entrance>
           
-          <p className="text-slate-300 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-            Search 100% verified beauty studios, compare live service catalog rates, read rigorous audit reviews, and book professional stylist slots instantly. 
-          </p>
+          <Entrance direction="up" delay={0.25} duration={0.5}>
+            <p className="text-slate-300 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
+              Search 100% verified beauty studios, compare live service catalog rates, read rigorous audit reviews, and book professional stylist slots instantly. 
+            </p>
+          </Entrance>
 
-          <div className="flex justify-center gap-3">
-            <a 
-              href="#marketplace-search-anchor"
-              className="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-600/25 cursor-pointer"
-            >
-              Explore Jaipur Venues
-            </a>
-            <button 
-              onClick={() => onNavigateToRole('owner')}
-              className="bg-white/10 hover:bg-white/15 border border-white/25 text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3.5 rounded-xl transition-all cursor-pointer"
-            >
-              List Your Salon (Free)
-            </button>
-          </div>
+          <Entrance direction="up" delay={0.35} duration={0.5}>
+            <div className="flex justify-center gap-3">
+              <a 
+                href="#marketplace-search-anchor"
+                className="bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-600/25 cursor-pointer"
+              >
+                Explore Jaipur Venues
+              </a>
+              <button 
+                onClick={() => onNavigateToRole('owner')}
+                className="bg-white/10 hover:bg-white/15 border border-white/25 text-white font-extrabold text-xs uppercase tracking-wider px-6 py-3.5 rounded-xl transition-all cursor-pointer"
+              >
+                List Your Salon (Free)
+              </button>
+            </div>
+          </Entrance>
         </div>
       </section>
 
       {/* 3. SMART SEARCH SECTION */}
       <section id="marketplace-search-anchor" className="relative -mt-10 z-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xl space-y-6">
+        <ScrollReveal direction="up" distance={30} duration={0.5}>
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xl space-y-6">
           
           {/* Main search inputs container */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
@@ -699,18 +751,21 @@ export default function MarketplaceHome({
             </div>
           </div>
 
-        </div>
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* 4. CATEGORIES SECTION */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center max-w-xl mx-auto mb-10">
-          <span className="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-wider">Operational Portals</span>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">Browse By Wellness Category</h2>
-          <p className="text-slate-500 text-xs mt-1">Select standard treatment groups to instantly filter available operating centers.</p>
-        </div>
+        <ScrollReveal direction="up" delay={0.05}>
+          <div className="text-center max-w-xl mx-auto mb-10">
+            <span className="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-wider">Operational Portals</span>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">Browse By Wellness Category</h2>
+            <p className="text-slate-500 text-xs mt-1">Select standard treatment groups to instantly filter available operating centers.</p>
+          </div>
+        </ScrollReveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { id: 'Salons', title: 'Salons & Styling', subtitle: 'Haircuts, blowout & keratin treatments', icon: Sparkles, bg: 'bg-indigo-50 text-indigo-600 border-indigo-100', hover: 'hover:border-indigo-300' },
             { id: 'Spas', title: 'Therapy Spas & Health', subtitle: 'Swedish body massage & acupressure', icon: Compass, bg: 'bg-emerald-50 text-emerald-600 border-emerald-100', hover: 'hover:border-emerald-300' },
@@ -728,29 +783,32 @@ export default function MarketplaceHome({
             }).length;
 
             return (
-              <div 
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`p-5 rounded-2xl border transition-all cursor-pointer text-left flex items-start gap-4 ${cat.hover} ${
-                  isSelected 
-                    ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-indigo-500/10' 
-                    : 'bg-white border-slate-200'
-                }`}
-              >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isSelected ? 'bg-indigo-600 text-white' : cat.bg}`}>
-                  <Icon className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-sm tracking-tight">{cat.title}</h3>
-                  <p className={`text-[11px] leading-snug mt-0.5 ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>{cat.subtitle}</p>
-                  <span className={`inline-block text-[10px] font-bold mt-2 px-2 py-0.5 rounded ${isSelected ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-500'}`}>
-                    {count} {count === 1 ? 'Studio' : 'Studios'} Live
-                  </span>
-                </div>
-              </div>
+              <StaggerItem key={cat.id}>
+                <HoverCard hoverY={-3} hoverScale={1.01}>
+                  <div 
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`p-5 rounded-2xl border transition-all cursor-pointer text-left flex items-start gap-4 ${cat.hover} ${
+                      isSelected 
+                        ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-indigo-500/10' 
+                        : 'bg-white border-slate-200'
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isSelected ? 'bg-indigo-600 text-white' : cat.bg}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm tracking-tight">{cat.title}</h3>
+                      <p className={`text-[11px] leading-snug mt-0.5 ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>{cat.subtitle}</p>
+                      <span className={`inline-block text-[10px] font-bold mt-2 px-2 py-0.5 rounded ${isSelected ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                        {count} {count === 1 ? 'Studio' : 'Studios'} Live
+                      </span>
+                    </div>
+                  </div>
+                </HoverCard>
+              </StaggerItem>
             );
           })}
-        </div>
+        </StaggerContainer>
       </section>
 
       {/* Search results banner and details */}
@@ -772,18 +830,20 @@ export default function MarketplaceHome({
 
       {/* 5. TOP RATED SHOPS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-          <div>
-            <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
-              <Award className="w-5 h-5 text-indigo-600" />
-              <span>Jaipur's Top-Rated Aesthetic Studios</span>
-            </h2>
-            <p className="text-slate-500 text-xs">Aesthetic partners holding a consistent 4.7+ audit rating on Nexora ledger.</p>
+        <ScrollReveal direction="up" delay={0.05}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+            <div>
+              <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                <Award className="w-5 h-5 text-indigo-600" />
+                <span>Jaipur's Top-Rated Aesthetic Studios</span>
+              </h2>
+              <p className="text-slate-500 text-xs">Aesthetic partners holding a consistent 4.7+ audit rating on Nexora ledger.</p>
+            </div>
+            <span className="text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full uppercase tracking-wider">
+              Verified Audits Active
+            </span>
           </div>
-          <span className="text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full uppercase tracking-wider">
-            Verified Audits Active
-          </span>
-        </div>
+        </ScrollReveal>
 
         {topRatedShops.length === 0 ? (
           <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center max-w-md mx-auto">
@@ -792,76 +852,79 @@ export default function MarketplaceHome({
             <p className="text-xs text-slate-500 mt-1">We couldn't find any approved shops with rating &ge; 4.7 yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {topRatedShops.map((salon) => (
-              <div 
-                key={salon.id}
-                className="bg-white rounded-3xl border border-slate-200/80 overflow-hidden hover:border-indigo-400 transition-all duration-300 group flex flex-col justify-between"
-              >
-                <div>
-                  {/* Photo Banner */}
-                  <div className="h-44 bg-slate-100 relative overflow-hidden">
-                    <img 
-                      src={salon.banner_url || "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=600"} 
-                      alt={salon.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[9px] font-extrabold text-slate-800 uppercase tracking-wider border border-slate-200">
-                      {salon.business_type}
-                    </div>
-                    <div className="absolute top-3 right-3 bg-indigo-600 text-white px-2.5 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 shadow">
-                      <ShieldCheck className="w-3 h-3" />
-                      <span>Verified Shop</span>
-                    </div>
-                  </div>
-
-                  {/* Body Content */}
-                  <div className="p-5 text-left">
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-indigo-500" />
-                        {salon.area}, {salon.city}
-                      </span>
-                      <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
-                        15% QR Cash
-                      </span>
-                    </div>
-
-                    <h3 className="text-base font-black text-slate-900 group-hover:text-indigo-600 transition-colors leading-tight">
-                      {salon.name}
-                    </h3>
-                    <p className="text-xs text-slate-400 line-clamp-2 mt-1.5 leading-relaxed">
-                      {salon.description}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="px-5 pb-5 pt-3 border-t border-slate-50">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="block text-[8px] text-slate-400 uppercase font-mono font-bold tracking-widest">Starts From</span>
-                      <span className="text-sm font-extrabold text-slate-900">₹{salon.starting_price || 250}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="flex items-center gap-1 text-xs font-bold text-slate-900 justify-end">
-                        <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                        {salon.rating || '5.0'}
-                      </span>
-                      <span className="text-[9px] text-slate-400 block font-bold">({salon.reviews_count || '0'} audits)</span>
-                    </div>
-                  </div>
-
-                  <button 
-                    onClick={() => onSelectShop(salon.id)}
-                    className="mt-4 w-full bg-slate-950 hover:bg-indigo-600 text-white text-[11px] font-extrabold uppercase tracking-wider py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm group-hover:shadow"
+              <StaggerItem key={salon.id}>
+                <HoverCard hoverY={-5} hoverScale={1.01} className="h-full">
+                  <div 
+                    className="bg-white rounded-3xl border border-slate-200/80 overflow-hidden hover:border-indigo-400 transition-all duration-300 group flex flex-col justify-between h-full shadow-sm hover:shadow-md"
                   >
-                    <span>View Catalog & Book</span>
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </div>
-              </div>
+                    <div>
+                      {/* Photo Banner */}
+                      <div className="h-44 bg-slate-100 relative overflow-hidden">
+                        <img 
+                          src={salon.banner_url || "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=600"} 
+                          alt={salon.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[9px] font-extrabold text-slate-800 uppercase tracking-wider border border-slate-200">
+                          {salon.business_type}
+                        </div>
+                        <div className="absolute top-3 right-3 bg-indigo-600 text-white px-2.5 py-1 rounded-full text-[9px] font-bold flex items-center gap-1 shadow">
+                          <ShieldCheck className="w-3 h-3" />
+                          <span>Verified Shop</span>
+                        </div>
+                      </div>
+
+                      {/* Body Content */}
+                      <div className="p-5 text-left">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-indigo-500" />
+                            {salon.area}, {salon.city}
+                          </span>
+                          <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                            15% QR Cash
+                          </span>
+                        </div>
+
+                        <h3 className="text-base font-black text-slate-900 group-hover:text-indigo-600 transition-colors leading-tight">
+                          {salon.name}
+                        </h3>
+                        <p className="text-xs text-slate-400 line-clamp-2 mt-1.5 leading-relaxed">
+                          {salon.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="px-5 pb-5 pt-3 border-t border-slate-50">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="block text-[8px] text-slate-400 uppercase font-mono font-bold tracking-widest">Starts From</span>
+                          <span className="text-sm font-extrabold text-slate-900">₹{salon.starting_price || 250}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="flex items-center gap-1 text-xs font-bold text-slate-900 justify-end">
+                            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                            {salon.rating || '5.0'}
+                          </span>
+                          <span className="text-[9px] text-slate-400 block font-bold">({salon.reviews_count || '0'} audits)</span>
+                        </div>
+                      </div>
+
+                      <button 
+                        onClick={() => onSelectShop(salon.id)}
+                        className="mt-4 w-full bg-slate-950 hover:bg-indigo-600 text-white text-[11px] font-extrabold uppercase tracking-wider py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm group-hover:shadow"
+                      >
+                        <span>View Catalog & Book</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                      </button>
+                    </div>
+                  </div>
+                </HoverCard>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         )}
       </section>
    
@@ -944,49 +1007,55 @@ export default function MarketplaceHome({
 
       {/* 7. SPONSORED BRANDS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-12 gap-4">
-          <div className="max-w-2xl">
-            <span className="text-indigo-600 font-semibold text-sm tracking-tight mb-2 block">Brand Partnerships</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">Professional-grade products.</h2>
-            <p className="text-base text-slate-500 mt-3 leading-relaxed">
-              Explore premium treatments and direct supply partnerships from the world's most trusted beauty and grooming brands.
-            </p>
+        <ScrollReveal direction="up">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-12 gap-4">
+            <div className="max-w-2xl">
+              <span className="text-indigo-600 font-semibold text-sm tracking-tight mb-2 block">Brand Partnerships</span>
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">Professional-grade products.</h2>
+              <p className="text-base text-slate-500 mt-3 leading-relaxed">
+                Explore premium treatments and direct supply partnerships from the world's most trusted beauty and grooming brands.
+              </p>
+            </div>
+            <button className="text-sm font-semibold text-slate-900 hover:text-indigo-600 transition-colors group flex items-center gap-1">
+              View All Partners <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
           </div>
-          <button className="text-sm font-semibold text-slate-900 hover:text-indigo-600 transition-colors group flex items-center gap-1">
-            View All Partners <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
-        </div>
+        </ScrollReveal>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             { name: "Wella Professionals", desc: "Discover industry-leading color technology and care for transformative results.", color: "from-amber-500/10 to-orange-500/5", image: "https://images.unsplash.com/photo-1562322140-8baeecece3df?auto=format&fit=crop&q=80&w=600" },
             { name: "L'Oréal Professionnel", desc: "Expert formulas empowering salons to create iconic hair across the globe.", color: "from-indigo-500/10 to-blue-500/5", image: "https://images.unsplash.com/photo-1522337660859-02fbefca4702?auto=format&fit=crop&q=80&w=600" },
             { name: "Olaplex", desc: "The gold standard in bond repair science, securing hair health from within.", color: "from-slate-500/10 to-slate-400/5", image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&q=80&w=600" },
             { name: "Kérastase Paris", desc: "Tailored luxury haircare rituals designed for every salon client's unique needs.", color: "from-emerald-500/10 to-teal-500/5", image: "https://images.unsplash.com/photo-1631730359585-38cf72f0d143?auto=format&fit=crop&q=80&w=600" }
           ].map((brand, idx) => (
-            <div key={idx} className="group flex flex-col h-full bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-slate-300 transition-all duration-300">
-              <div className={`h-48 bg-gradient-to-br ${brand.color} relative overflow-hidden`}>
-                <img src={brand.image} alt={brand.name} className="w-full h-full object-cover mix-blend-overlay opacity-60 group-hover:scale-105 transition-transform duration-700 ease-out" />
-                <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-md text-[10px] font-bold text-slate-700 uppercase tracking-widest shadow-sm">
-                  Sponsored
+            <StaggerItem key={idx}>
+              <HoverCard hoverY={-6} hoverScale={1.01} className="h-full">
+                <div className="group flex flex-col h-full bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-slate-300 transition-all duration-300">
+                  <div className={`h-48 bg-gradient-to-br ${brand.color} relative overflow-hidden`}>
+                    <img src={brand.image} alt={brand.name} className="w-full h-full object-cover mix-blend-overlay opacity-60 group-hover:scale-105 transition-transform duration-700 ease-out" />
+                    <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-md text-[10px] font-bold text-slate-700 uppercase tracking-widest shadow-sm">
+                      Sponsored
+                    </div>
+                    {/* Logo Box */}
+                    <div className="absolute -bottom-6 left-6 w-14 h-14 bg-white rounded-xl shadow-md border border-slate-100 flex items-center justify-center font-bold text-xl text-slate-900 z-10">
+                      {brand.name[0]}
+                    </div>
+                  </div>
+                  <div className="pt-10 pb-6 px-6 flex flex-col flex-grow relative z-0">
+                    <h3 className="font-bold text-lg text-slate-900 tracking-tight">{brand.name}</h3>
+                    <p className="text-sm text-slate-500 mt-2 leading-relaxed flex-grow">{brand.desc}</p>
+                    <div className="mt-6 pt-6 border-t border-slate-100">
+                      <button className="w-full bg-slate-50 text-slate-900 font-semibold text-sm py-2.5 rounded-lg hover:bg-slate-900 hover:text-white transition-colors cursor-pointer">
+                        Explore Brand
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                {/* Logo Box */}
-                <div className="absolute -bottom-6 left-6 w-14 h-14 bg-white rounded-xl shadow-md border border-slate-100 flex items-center justify-center font-bold text-xl text-slate-900 z-10">
-                  {brand.name[0]}
-                </div>
-              </div>
-              <div className="pt-10 pb-6 px-6 flex flex-col flex-grow relative z-0">
-                <h3 className="font-bold text-lg text-slate-900 tracking-tight">{brand.name}</h3>
-                <p className="text-sm text-slate-500 mt-2 leading-relaxed flex-grow">{brand.desc}</p>
-                <div className="mt-6 pt-6 border-t border-slate-100">
-                  <button className="w-full bg-slate-50 text-slate-900 font-semibold text-sm py-2.5 rounded-lg hover:bg-slate-900 hover:text-white transition-colors cursor-pointer">
-                    Explore Brand
-                  </button>
-                </div>
-              </div>
-            </div>
+              </HoverCard>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       </section>
 
       {/* 8. SPONSORED VIDEO ADS */}
@@ -995,73 +1064,81 @@ export default function MarketplaceHome({
       {/* 9. OFFERS & DISCOUNTS */}
       <section className="bg-white py-12 border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
-          <div className="max-w-xl mb-8">
-            <span className="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-wider">Voucher Hub</span>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">Active Promos & Vouchers</h2>
-            <p className="text-slate-500 text-xs mt-1">Get up to 35% seasonal package benefits. Claim code to automatically load deal details at checkout.</p>
-          </div>
+          <ScrollReveal direction="up">
+            <div className="max-w-xl mb-8">
+              <span className="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-wider">Voucher Hub</span>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">Active Promos & Vouchers</h2>
+              <p className="text-slate-500 text-xs mt-1">Get up to 35% seasonal package benefits. Claim code to automatically load deal details at checkout.</p>
+            </div>
+          </ScrollReveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Promo 1 */}
-            <div className="bg-gradient-to-r from-indigo-900 to-slate-900 rounded-3xl p-6 text-white flex justify-between items-center shadow-lg relative overflow-hidden text-left">
-              <div className="absolute right-0 top-0 w-32 h-32 bg-indigo-600/10 rounded-full -translate-y-8 translate-x-8"></div>
-              <div className="space-y-3 relative z-10">
-                <span className="bg-white/10 text-white border border-white/20 text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
-                  Bridal Festive Glow
-                </span>
-                <h3 className="text-lg font-black leading-tight">Bridal Season Grand Glow</h3>
-                <p className="text-slate-300 text-xs max-w-xs">Enjoy a flat 25% discount on Royal HD makeup packages at certified Jaipur studios.</p>
-                
-                <div className="flex items-center gap-2 pt-2">
-                  <span className="bg-white/5 border border-white/10 text-white text-xs font-mono px-3 py-1.5 rounded-lg font-bold tracking-widest select-all">BRIDAL2026</span>
+            <StaggerItem>
+              <HoverCard hoverY={-4} hoverScale={1.01} className="h-full">
+                <div className="bg-gradient-to-r from-indigo-900 to-slate-900 rounded-3xl p-6 text-white flex justify-between items-center shadow-lg relative overflow-hidden text-left h-full">
+                  <div className="absolute right-0 top-0 w-32 h-32 bg-indigo-600/10 rounded-full -translate-y-8 translate-x-8"></div>
+                  <div className="space-y-3 relative z-10">
+                    <span className="bg-white/10 text-white border border-white/20 text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
+                      Bridal Festive Glow
+                    </span>
+                    <h3 className="text-lg font-black leading-tight">Bridal Season Grand Glow</h3>
+                    <p className="text-slate-300 text-xs max-w-xs">Enjoy a flat 25% discount on Royal HD makeup packages at certified Jaipur studios.</p>
+                    
+                    <div className="flex items-center gap-2 pt-2">
+                      <span className="bg-white/5 border border-white/10 text-white text-xs font-mono px-3 py-1.5 rounded-lg font-bold tracking-widest select-all">BRIDAL2026</span>
+                      <button 
+                        onClick={() => handleCopyCode('BRIDAL2026')}
+                        className="bg-white text-slate-950 hover:bg-slate-100 p-1.5 rounded-lg transition-all cursor-pointer"
+                        title="Copy code"
+                      >
+                        {copiedCode === 'BRIDAL2026' ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
                   <button 
-                    onClick={() => handleCopyCode('BRIDAL2026')}
-                    className="bg-white text-slate-950 hover:bg-slate-100 p-1.5 rounded-lg transition-all cursor-pointer"
-                    title="Copy code"
+                    onClick={() => onSelectShop("ten_aura")} 
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white p-3.5 rounded-2xl shadow-md shrink-0 cursor-pointer self-end"
                   >
-                    {copiedCode === 'BRIDAL2026' ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                    <ArrowRight className="w-5 h-5" />
                   </button>
                 </div>
-              </div>
-              <button 
-                onClick={() => onSelectShop("ten_aura")} 
-                className="bg-indigo-600 hover:bg-indigo-500 text-white p-3.5 rounded-2xl shadow-md shrink-0 cursor-pointer self-end"
-              >
-                <ArrowRight className="w-5 h-5" />
-              </button>
-            </div>
+              </HoverCard>
+            </StaggerItem>
 
             {/* Promo 2 */}
-            <div className="bg-gradient-to-r from-indigo-950 to-violet-950 rounded-3xl p-6 text-white flex justify-between items-center shadow-lg relative overflow-hidden text-left">
-              <div className="absolute right-0 top-0 w-32 h-32 bg-purple-600/10 rounded-full -translate-y-8 translate-x-8"></div>
-              <div className="space-y-3 relative z-10">
-                <span className="bg-white/10 text-white border border-white/20 text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
-                  Monsoon Relax Deal
-                </span>
-                <h3 className="text-lg font-black leading-tight">Aromatherapy Spa Relax Bundle</h3>
-                <p className="text-slate-300 text-xs max-w-xs">Free calming aromatherapy facial service with deep stress relief Swedish massage.</p>
-                
-                <div className="flex items-center gap-2 pt-2">
-                  <span className="bg-white/5 border border-white/10 text-white text-xs font-mono px-3 py-1.5 rounded-lg font-bold tracking-widest select-all">MONSOONSPA</span>
+            <StaggerItem>
+              <HoverCard hoverY={-4} hoverScale={1.01} className="h-full">
+                <div className="bg-gradient-to-r from-indigo-950 to-violet-950 rounded-3xl p-6 text-white flex justify-between items-center shadow-lg relative overflow-hidden text-left h-full">
+                  <div className="absolute right-0 top-0 w-32 h-32 bg-purple-600/10 rounded-full -translate-y-8 translate-x-8"></div>
+                  <div className="space-y-3 relative z-10">
+                    <span className="bg-white/10 text-white border border-white/20 text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
+                      Monsoon Relax Deal
+                    </span>
+                    <h3 className="text-lg font-black leading-tight">Aromatherapy Spa Relax Bundle</h3>
+                    <p className="text-slate-300 text-xs max-w-xs">Free calming aromatherapy facial service with deep stress relief Swedish massage.</p>
+                    
+                    <div className="flex items-center gap-2 pt-2">
+                      <span className="bg-white/5 border border-white/10 text-white text-xs font-mono px-3 py-1.5 rounded-lg font-bold tracking-widest select-all">MONSOONSPA</span>
+                      <button 
+                        onClick={() => handleCopyCode('MONSOONSPA')}
+                        className="bg-white text-slate-950 hover:bg-slate-100 p-1.5 rounded-lg transition-all cursor-pointer"
+                        title="Copy code"
+                      >
+                        {copiedCode === 'MONSOONSPA' ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
                   <button 
-                    onClick={() => handleCopyCode('MONSOONSPA')}
-                    className="bg-white text-slate-950 hover:bg-slate-100 p-1.5 rounded-lg transition-all cursor-pointer"
-                    title="Copy code"
+                    onClick={() => onSelectShop("ten_zen")} 
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white p-3.5 rounded-2xl shadow-md shrink-0 cursor-pointer self-end"
                   >
-                    {copiedCode === 'MONSOONSPA' ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                    <ArrowRight className="w-5 h-5" />
                   </button>
                 </div>
-              </div>
-              <button 
-                onClick={() => onSelectShop("ten_zen")} 
-                className="bg-indigo-600 hover:bg-indigo-500 text-white p-3.5 rounded-2xl shadow-md shrink-0 cursor-pointer self-end"
-              >
-                <ArrowRight className="w-5 h-5" />
-              </button>
-            </div>
-
-          </div>
+              </HoverCard>
+            </StaggerItem>
+          </StaggerContainer>
         </div>
       </section>
 
@@ -1077,14 +1154,28 @@ export default function MarketplaceHome({
               <p className="text-slate-500 text-xs">Locate closest operating beauty hubs. Distance estimates require simulated GPS radar access.</p>
             </div>
             
-            {gpsStatus !== 'active' && (
-              <button 
-                onClick={handleDetectLocation}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow cursor-pointer uppercase tracking-wider"
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowOnlySaved(prev => !prev)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-2 ${
+                  showOnlySaved 
+                    ? 'bg-rose-600 text-white border-rose-600 shadow-md' 
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`}
               >
-                Detect My Live GPS location
+                <Heart className={`w-3.5 h-3.5 ${showOnlySaved ? 'fill-white text-white' : 'text-rose-500 fill-rose-500'}`} />
+                <span>Saved Salons ({savedSalonIds.length})</span>
               </button>
-            )}
+
+              {gpsStatus !== 'active' && (
+                <button 
+                  onClick={handleDetectLocation}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow cursor-pointer uppercase tracking-wider"
+                >
+                  Detect My Live GPS location
+                </button>
+              )}
+            </div>
           </div>
 
           {gpsStatus !== 'active' ? (
@@ -1121,9 +1212,23 @@ export default function MarketplaceHome({
                           <span>{distanceData.distance} away</span>
                         </span>
                         
-                        <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">
-                          {distanceData.driveTime}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest hidden sm:inline">
+                            {distanceData.driveTime}
+                          </span>
+                          <button
+                            onClick={(e) => toggleSaveSalon(salon.id, e)}
+                            className={`p-2 rounded-xl transition-all cursor-pointer ${
+                              savedSalonIds.includes(salon.id)
+                                ? 'bg-rose-50 text-rose-600 border border-rose-200 shadow-sm'
+                                : 'bg-slate-50 text-slate-400 hover:text-rose-500 border border-slate-200'
+                            }`}
+                            aria-label="Save Salon to Wishlist"
+                            title={savedSalonIds.includes(salon.id) ? "Saved in Wishlist" : "Save Salon"}
+                          >
+                            <Heart className={`w-3.5 h-3.5 ${savedSalonIds.includes(salon.id) ? 'fill-rose-500' : ''}`} />
+                          </button>
+                        </div>
                       </div>
 
                       <div>
@@ -1246,36 +1351,38 @@ export default function MarketplaceHome({
 
       {/* 13. APP DOWNLOAD CALL-TO-ACTION */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 rounded-[32px] p-8 sm:p-12 relative overflow-hidden text-center text-white">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent pointer-events-none"></div>
-          
-          <div className="max-w-2xl mx-auto relative z-10 space-y-6">
-            <span className="bg-white/10 text-indigo-300 border border-white/10 text-[9px] font-extrabold uppercase tracking-widest px-3 py-1.5 rounded-full inline-block">
-              Nexora Customer App
-            </span>
-            <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-none">Download Nexora Customer App / PWA</h2>
-            <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-lg mx-auto">
-              Scan personalized beauty checkout QR codes, monitor your cash back ledger, browse neighborhood salon vacancies, and manage club subscriptions on the go.
-            </p>
+        <ScrollReveal direction="up" distance={30} duration={0.6}>
+          <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 rounded-[32px] p-8 sm:p-12 relative overflow-hidden text-center text-white">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent pointer-events-none"></div>
             
-            <div className="flex flex-wrap gap-3 justify-center pt-2">
-              <button 
-                onClick={() => alert('Simulating iOS Web Progressive Web App (PWA) installation. Simply add to home screen to launch.')}
-                className="bg-white hover:bg-slate-100 text-slate-950 font-extrabold px-6 py-3 rounded-xl text-xs flex items-center gap-2 cursor-pointer transition-all shadow"
-              >
-                <Smartphone className="w-4 h-4 text-slate-950" />
-                <span>Launch iOS Web PWA</span>
-              </button>
-              <button 
-                onClick={() => alert('Simulating Android Native PWA bundle build. Play Store compatibility verified.')}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-500/20 font-extrabold px-6 py-3 rounded-xl text-xs flex items-center gap-2 cursor-pointer transition-all shadow"
-              >
-                <Smartphone className="w-4 h-4 text-indigo-100" />
-                <span>Launch Android PWA</span>
-              </button>
+            <div className="max-w-2xl mx-auto relative z-10 space-y-6">
+              <span className="bg-white/10 text-indigo-300 border border-white/10 text-[9px] font-extrabold uppercase tracking-widest px-3 py-1.5 rounded-full inline-block">
+                Nexora Customer App
+              </span>
+              <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-none">Download Nexora Customer App / PWA</h2>
+              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-lg mx-auto">
+                Scan personalized beauty checkout QR codes, monitor your cash back ledger, browse neighborhood salon vacancies, and manage club subscriptions on the go.
+              </p>
+              
+              <div className="flex flex-wrap gap-3 justify-center pt-2">
+                <button 
+                  onClick={() => alert('Simulating iOS Web Progressive Web App (PWA) installation. Simply add to home screen to launch.')}
+                  className="bg-white hover:bg-slate-100 text-slate-950 font-extrabold px-6 py-3 rounded-xl text-xs flex items-center gap-2 cursor-pointer transition-all shadow"
+                >
+                  <Smartphone className="w-4 h-4 text-slate-950" />
+                  <span>Launch iOS Web PWA</span>
+                </button>
+                <button 
+                  onClick={() => alert('Simulating Android Native PWA bundle build. Play Store compatibility verified.')}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-500/20 font-extrabold px-6 py-3 rounded-xl text-xs flex items-center gap-2 cursor-pointer transition-all shadow"
+                >
+                  <Smartphone className="w-4 h-4 text-indigo-100" />
+                  <span>Launch Android PWA</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* 14. FOOTER & MULTI-ROLE BUSINESS CTAS */}
@@ -1283,73 +1390,89 @@ export default function MarketplaceHome({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           
           {/* Multi-role Business CTA Cards Grid inside Footer */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-8 border-b border-slate-100">
+          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-8 border-b border-slate-100">
             
             {/* Customer CTA */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col justify-between text-left">
-              <div>
-                <span className="text-[8px] bg-indigo-50 text-indigo-700 border border-indigo-100 font-extrabold px-2.5 py-0.5 rounded uppercase tracking-wider">Customer Portal</span>
-                <h4 className="font-extrabold text-slate-950 mt-2 text-sm">Book Jaipur Salons</h4>
-                <p className="text-slate-400 text-[11px] leading-snug mt-1">Book hair styling, skin clinical therapies & deep luxury massages near you.</p>
-              </div>
-              <button 
-                onClick={handleResetAISearch}
-                className="text-[10px] font-extrabold text-indigo-600 hover:text-indigo-700 transition-colors mt-4 inline-flex items-center gap-1 cursor-pointer"
-              >
-                <span>Start Discovery</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            <StaggerItem>
+              <HoverCard hoverY={-3} className="h-full">
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col justify-between text-left h-full">
+                  <div>
+                    <span className="text-[8px] bg-indigo-50 text-indigo-700 border border-indigo-100 font-extrabold px-2.5 py-0.5 rounded uppercase tracking-wider">Customer Portal</span>
+                    <h4 className="font-extrabold text-slate-950 mt-2 text-sm">Book Jaipur Salons</h4>
+                    <p className="text-slate-400 text-[11px] leading-snug mt-1">Book hair styling, skin clinical therapies & deep luxury massages near you.</p>
+                  </div>
+                  <button 
+                    onClick={handleResetAISearch}
+                    className="text-[10px] font-extrabold text-indigo-600 hover:text-indigo-700 transition-colors mt-4 inline-flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Start Discovery</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </HoverCard>
+            </StaggerItem>
 
             {/* Owner CTA */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col justify-between text-left">
-              <div>
-                <span className="text-[8px] bg-purple-50 text-purple-700 border border-purple-100 font-extrabold px-2.5 py-0.5 rounded uppercase tracking-wider">Salon Owner</span>
-                <h4 className="font-extrabold text-slate-950 mt-2 text-sm">Unlock Website Builder</h4>
-                <p className="text-slate-400 text-[11px] leading-snug mt-1">Deploy white-label domain websites, handle cash registers & instant settlement ledger.</p>
-              </div>
-              <button 
-                onClick={() => onNavigateToRole('owner')}
-                className="text-[10px] font-extrabold text-purple-600 hover:text-purple-700 transition-colors mt-4 inline-flex items-center gap-1 cursor-pointer"
-              >
-                <span>Deploy SalonOS</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            <StaggerItem>
+              <HoverCard hoverY={-3} className="h-full">
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col justify-between text-left h-full">
+                  <div>
+                    <span className="text-[8px] bg-purple-50 text-purple-700 border border-purple-100 font-extrabold px-2.5 py-0.5 rounded uppercase tracking-wider">Salon Owner</span>
+                    <h4 className="font-extrabold text-slate-950 mt-2 text-sm">Unlock Website Builder</h4>
+                    <p className="text-slate-400 text-[11px] leading-snug mt-1">Deploy white-label domain websites, handle cash registers & instant settlement ledger.</p>
+                  </div>
+                  <button 
+                    onClick={() => onNavigateToRole('owner')}
+                    className="text-[10px] font-extrabold text-purple-600 hover:text-purple-700 transition-colors mt-4 inline-flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Deploy SalonOS</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </HoverCard>
+            </StaggerItem>
 
             {/* Growth Partner CTA */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col justify-between text-left">
-              <div>
-                <span className="text-[8px] bg-emerald-50 text-emerald-700 border border-emerald-100 font-extrabold px-2.5 py-0.5 rounded uppercase tracking-wider">Growth Partner</span>
-                <h4 className="font-extrabold text-slate-950 mt-2 text-sm">Earn 2% Commission</h4>
-                <p className="text-slate-400 text-[11px] leading-snug mt-1">Refer physical studios in your Jaipur neighborhood & secure lifetime recurring revenue.</p>
-              </div>
-              <button 
-                onClick={() => onNavigateToRole('partner')}
-                className="text-[10px] font-extrabold text-emerald-600 hover:text-emerald-700 transition-colors mt-4 inline-flex items-center gap-1 cursor-pointer"
-              >
-                <span>Claim Referral Link</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            <StaggerItem>
+              <HoverCard hoverY={-3} className="h-full">
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col justify-between text-left h-full">
+                  <div>
+                    <span className="text-[8px] bg-emerald-50 text-emerald-700 border border-emerald-100 font-extrabold px-2.5 py-0.5 rounded uppercase tracking-wider">Growth Partner</span>
+                    <h4 className="font-extrabold text-slate-950 mt-2 text-sm">Earn 2% Commission</h4>
+                    <p className="text-slate-400 text-[11px] leading-snug mt-1">Refer physical studios in your Jaipur neighborhood & secure lifetime recurring revenue.</p>
+                  </div>
+                  <button 
+                    onClick={() => onNavigateToRole('partner')}
+                    className="text-[10px] font-extrabold text-emerald-600 hover:text-emerald-700 transition-colors mt-4 inline-flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Claim Referral Link</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </HoverCard>
+            </StaggerItem>
 
             {/* Distributor CTA */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col justify-between text-left">
-              <div>
-                <span className="text-[8px] bg-amber-50 text-amber-700 border border-amber-100 font-extrabold px-2.5 py-0.5 rounded uppercase tracking-wider">Brand Sponsor</span>
-                <h4 className="font-extrabold text-slate-950 mt-2 text-sm">Direct Retail Supply</h4>
-                <p className="text-slate-400 text-[11px] leading-snug mt-1">Connect directly with over 450+ beauty centers and cosmetic retailers in Rajasthan.</p>
-              </div>
-              <button 
-                onClick={() => onNavigateToRole('brand')}
-                className="text-[10px] font-extrabold text-amber-700 hover:text-amber-800 transition-colors mt-4 inline-flex items-center gap-1 cursor-pointer"
-              >
-                <span>Access Distributor B2B</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            <StaggerItem>
+              <HoverCard hoverY={-3} className="h-full">
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col justify-between text-left h-full">
+                  <div>
+                    <span className="text-[8px] bg-amber-50 text-amber-700 border border-amber-100 font-extrabold px-2.5 py-0.5 rounded uppercase tracking-wider">Brand Sponsor</span>
+                    <h4 className="font-extrabold text-slate-950 mt-2 text-sm">Direct Retail Supply</h4>
+                    <p className="text-slate-400 text-[11px] leading-snug mt-1">Connect directly with over 450+ beauty centers and cosmetic retailers in Rajasthan.</p>
+                  </div>
+                  <button 
+                    onClick={() => onNavigateToRole('brand')}
+                    className="text-[10px] font-extrabold text-amber-700 hover:text-amber-800 transition-colors mt-4 inline-flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Access Distributor B2B</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </HoverCard>
+            </StaggerItem>
 
-          </div>
+          </StaggerContainer>
 
           {/* Standard Footer metadata and links */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-4">

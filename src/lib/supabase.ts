@@ -644,26 +644,6 @@ export const api = {
   },
 
   async createCustomer(customerData: any) {
-    if (supabase) {
-      try {
-        await ensureProbed();
-        const rawPayload = {
-          id: customerData.id,
-          tenant_id: customerData.tenant_id,
-          shop_id: customerData.tenant_id,
-          full_name: customerData.full_name,
-          phone: customerData.phone,
-          email: customerData.email,
-          status: customerData.status || 'active',
-          crm_tags: customerData.crm_tags || ['New']
-        };
-        const { data, error } = await safeInsert(tableNames.customers, rawPayload, customerColumns);
-        if (error) throw error;
-        return { success: true, customer: mappers.toCanonicalCustomer(data?.[0]) };
-      } catch (err) {
-        console.warn("Supabase createCustomer failed, falling back:", err);
-      }
-    }
     const res = await fetch(`${BASE_URL}/api/customers`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -785,13 +765,15 @@ export const api = {
   },
 
   // Customers
-  async getCustomers(tenantId?: string) {
+  async getCustomers(tenantId?: string, phone?: string) {
     if (supabase) {
       try {
         await ensureProbed();
         let query = supabase.from('customers').select('*');
         if (tenantId) {
           query = query.or(`tenant_id.eq.${tenantId},shop_id.eq.${tenantId}`);
+        } else if (phone) {
+          query = query.or(`phone.eq.${phone}`);
         }
         const { data, error } = await query;
         if (!error && data) return data;
@@ -799,7 +781,10 @@ export const api = {
         console.warn("Supabase getCustomers failed:", err);
       }
     }
-    const url = tenantId ? `${BASE_URL}/api/customers?tenant_id=${tenantId}` : `${BASE_URL}/api/customers`;
+    let url = `${BASE_URL}/api/customers`;
+    if (tenantId) url += `?tenant_id=${tenantId}`;
+    else if (phone) url += `?phone=${phone}`;
+    
     const res = await fetch(url);
     return res.json();
   },
@@ -1021,5 +1006,109 @@ export const api = {
   async getAdminAudit() {
     const res = await fetch(`${BASE_URL}/api/admin/audit`);
     return res.json();
+  },
+
+  // Gemini AI Schedule Notifications & Conflict System
+  async getScheduleNotifications(tenantId: string, forceRefresh = false) {
+    const res = await fetch(`${BASE_URL}/api/ai/schedule-notifications`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant_id: tenantId, force_refresh: forceRefresh }),
+    });
+    return res.json();
+  },
+
+  async resolveScheduleNotification(id: string, resolutionNote?: string) {
+    const res = await fetch(`${BASE_URL}/api/ai/schedule-notifications/${id}/resolve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resolution_note: resolutionNote }),
+    });
+    return res.json();
+  },
+
+  async markScheduleNotificationRead(id: string) {
+    const res = await fetch(`${BASE_URL}/api/ai/schedule-notifications/${id}/read`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return res.json();
+  },
+
+  async quickReassignBooking(bookingId: string, newStaffId: string, notificationId?: string) {
+    const res = await fetch(`${BASE_URL}/api/ai/schedule-notifications/quick-reassign`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        booking_id: bookingId,
+        new_staff_id: newStaffId,
+        notification_id: notificationId,
+      }),
+    });
+    return res.json();
+  },
+
+  async simulateConflict(tenantId: string) {
+    const res = await fetch(`${BASE_URL}/api/ai/schedule-notifications/simulate-conflict`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant_id: tenantId }),
+    });
+    return res.json();
+  },
+
+  async generateGiftCard(payload: { tenant_id: string; client_name: string; amount: number; occasion: string; style_prompt?: string }) {
+    const res = await fetch(`${BASE_URL}/api/ai/generate-gift-card`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return res.json();
+  },
+
+  async getDemandForecast(tenantId: string) {
+    const res = await fetch(`${BASE_URL}/api/ai/demand-forecast`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant_id: tenantId }),
+    });
+    return res.json();
+  },
+
+  async getReviewSummary(tenantId: string) {
+    const res = await fetch(`${BASE_URL}/api/ai/review-summary`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant_id: tenantId }),
+    });
+    return res.json();
+  },
+
+  async sendReviewRequest(payload: { tenant_id: string; appointment_id?: string; customer_name?: string; customer_phone?: string }) {
+    const res = await fetch(`${BASE_URL}/api/reviews/request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return res.json();
+  },
+
+  async getRosterOptimization(tenantId: string) {
+    const res = await fetch(`${BASE_URL}/api/ai/roster-optimizer`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant_id: tenantId }),
+    });
+    return res.json();
+  },
+
+  async getLoyaltyTiers(tenantId: string) {
+    const res = await fetch(`${BASE_URL}/api/ai/loyalty-tiers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant_id: tenantId }),
+    });
+    return res.json();
   }
 };
+

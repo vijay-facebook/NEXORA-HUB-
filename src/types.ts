@@ -145,6 +145,8 @@ export interface Staff {
   photo_url?: string;
   rating?: number;
   experience_years?: number;
+  bio?: string;
+  work_gallery?: string[];
 }
 
 export interface Customer {
@@ -319,3 +321,25 @@ export interface JobApplication {
   status: 'applied' | 'under_review' | 'shortlisted' | 'rejected' | 'hired';
   created_at: string;
 }
+
+export interface ScheduleNotification {
+  id: string;
+  tenant_id: string;
+  type: 'conflict' | 'optimization' | 'specialty_mismatch' | 'overload' | 'idle_staff' | 'unassigned';
+  category: 'conflict' | 'optimization';
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  title: string;
+  message: string;
+  suggested_action: string;
+  affected_staff_ids?: string[];
+  affected_staff_names?: string[];
+  affected_booking_ids?: string[];
+  affected_date?: string;
+  affected_time?: string;
+  created_at: string;
+  is_read?: boolean;
+  is_resolved?: boolean;
+  resolution_note?: string;
+  ai_generated?: boolean;
+}
+
