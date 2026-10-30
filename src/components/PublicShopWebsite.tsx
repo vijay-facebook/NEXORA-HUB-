@@ -19,6 +19,7 @@ import {
 interface PublicShopWebsiteProps {
   slug: string;
   initialSubRoute?: string;
+  userRole: string;
   onBackToMarketplace: () => void;
   onNavigateToBuilder: () => void;
 }
@@ -26,6 +27,7 @@ interface PublicShopWebsiteProps {
 export default function PublicShopWebsite({ 
   slug, 
   initialSubRoute,
+  userRole,
   onBackToMarketplace,
   onNavigateToBuilder
 }: PublicShopWebsiteProps) {
@@ -146,6 +148,26 @@ export default function PublicShopWebsite({
   const [submittingCancelId, setSubmittingCancelId] = useState<string | null>(null);
   const [cancellingSuccess, setCancellingSuccess] = useState<string | null>(null);
   const [profileViewTab, setProfileViewTab] = useState<'about' | 'customer'>('about');
+  const [recommendedServices, setRecommendedServices] = useState<Service[]>([]);
+
+  useEffect(() => {
+    if (myBookings.length > 0 && siteData) {
+      handleFetchRecommendations();
+    }
+  }, [myBookings, siteData]);
+
+  const handleFetchRecommendations = async () => {
+    if (!siteData) return;
+    try {
+      const res = await api.getRecommendations(siteData.tenant.id, myBookings);
+      if (res.success && res.recommendations) {
+        const recommended = siteData.services.filter(s => res.recommendations.includes(s.id));
+        setRecommendedServices(recommended);
+      }
+    } catch (err) {
+      console.error("Error fetching recommendations:", err);
+    }
+  };
 
   // QR Terminal & Dispute state
   const [activeQRBookingId, setActiveQRBookingId] = useState<string | null>(null);
@@ -580,7 +602,11 @@ export default function PublicShopWebsite({
               <span>Back</span>
             </button>
             <div className="flex items-center gap-2">
-              <span className="font-black text-base tracking-widest">{tenant.name}</span>
+              {website.logo_url ? (
+                <img src={website.logo_url} alt="Logo" className="h-8 w-auto object-contain" />
+              ) : (
+                <span className="font-black text-base tracking-widest">{tenant.name}</span>
+              )}
             </div>
           </div>
 
@@ -614,7 +640,14 @@ export default function PublicShopWebsite({
           <div className="space-y-12">
             
             {/* Custom Template Styled Hero */}
-            <section className={`${templateStyle.heroBg} py-20 sm:py-28 relative overflow-hidden px-4`}>
+            <section 
+              className={`${templateStyle.heroBg} py-20 sm:py-28 relative overflow-hidden px-4`}
+              style={website.hero_image_url ? {
+                backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${website.hero_image_url})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              } : {}}
+            >
               <div className="max-w-4xl mx-auto text-center space-y-6 relative z-10">
                 <span className="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-mono tracking-widest uppercase px-3 py-1 rounded-full inline-block">
                   {website.website_title}
@@ -667,6 +700,24 @@ export default function PublicShopWebsite({
                     alt="Salon Ambience" 
                     className="w-full h-full object-cover"
                   />
+                </div>
+              </section>
+            )}
+
+            {/* Recommended Services */}
+            {recommendedServices.length > 0 && (
+              <section className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+                <h3 className="text-xl font-bold tracking-tight text-slate-900">Recommended for You</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                  {recommendedServices.map((service) => (
+                    <div key={service.id} className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 hover:shadow-md transition-all">
+                      <h4 className="text-sm font-bold text-slate-900">{service.name}</h4>
+                      <p className="text-xs text-slate-500 line-clamp-2">{service.description}</p>
+                      <button onClick={() => handleStartBooking(service)} className={`w-full py-2 text-[10px] font-bold ${templateStyle.primaryBg} text-white rounded cursor-pointer`}>
+                        Book Now
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </section>
             )}
@@ -1944,18 +1995,20 @@ export default function PublicShopWebsite({
       </div>
 
       {/* Floating Website Builder Callout Widget */}
-      <div className="bg-blue-600 text-white px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold shadow-2xl relative z-20">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-amber-300" />
-          <span>Are you a salon owner in Jaipur? Build your own free published website like this in 2 minutes!</span>
+      {userRole === 'owner' && (
+        <div className="bg-blue-600 text-white px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold shadow-2xl relative z-20">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-amber-300" />
+            <span>Are you a salon owner in Jaipur? Build your own free published website like this in 2 minutes!</span>
+          </div>
+          <button 
+            onClick={onNavigateToBuilder}
+            className="bg-white text-blue-600 hover:bg-slate-100 px-3.5 py-1.5 rounded-lg font-bold cursor-pointer shrink-0"
+          >
+            Build Website Free
+          </button>
         </div>
-        <button 
-          onClick={onNavigateToBuilder}
-          className="bg-white text-blue-600 hover:bg-slate-100 px-3.5 py-1.5 rounded-lg font-bold cursor-pointer shrink-0"
-        >
-          Build Website Free
-        </button>
-      </div>
+      )}
 
       {/* Sticky Bottom Mobile Container (CTA + Navigation) */}
       <div className="sticky bottom-0 sm:hidden z-30 shadow-2xl border-t border-slate-200 bg-white">

@@ -15,8 +15,12 @@ import {
   UserCheck, Filter, X, ChevronDown, CheckCircle2, ShieldAlert, Star, MessageSquare, Package, Crown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useDropzone } from 'react-dropzone';
 import { api } from '../lib/supabase';
 import { analyzeCustomerHistory, trackCampaignConversions, CustomerInteraction } from '../lib/ai/crm-logic';
+import StaffManagementTab from './StaffManagementTab';
+import { ClientWaitlist } from './shared/ClientWaitlist';
+import { BUSINESS_TYPES, getTemplateForBusinessType } from '../config/businessTypeMapper';
 import { 
   Tenant, TenantWebsite, Service, Staff, 
   Customer, Appointment, Wallet, WalletTransaction, 
@@ -40,8 +44,47 @@ export default function OwnerDashboard({
   onNavigate,
   onSelectOwnerTenantId
 }: OwnerDashboardProps) {
+  
+  const processImage = (file: File, width: number, height: number): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return reject('No context');
+          const imgRatio = img.width / img.height;
+          const targetRatio = width / height;
+          let sWidth, sHeight, sx, sy;
+          if (imgRatio > targetRatio) {
+            sHeight = img.height;
+            sWidth = img.height * targetRatio;
+            sx = (img.width - sWidth) / 2;
+            sy = 0;
+          } else {
+            sWidth = img.width;
+            sHeight = img.width / targetRatio;
+            sx = 0;
+            sy = (img.height - sHeight) / 2;
+          }
+          ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   // Navigation tab state
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'builder' | 'bookings' | 'services' | 'forecasting' | 'reviews-intelligence' | 'inventory' | 'roster-optimizer' | 'loyalty' | 'staff' | 'crm' | 'wallet' | 'business-profile' | 'media' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'builder' | 'bookings' | 'services' | 'forecasting' | 'reviews-intelligence' | 'inventory' | 'roster-optimizer' | 'loyalty' | 'waitlist' | 'staff' | 'staff-management' | 'crm' | 'wallet' | 'business-profile' | 'media' | 'settings' | 'revenue-insights'>('dashboard');
+
+  // Revenue Insights state
+  const [revenueForecast, setRevenueForecast] = useState<{ projections: { date: string, revenue: number }[] } | null>(null);
+  const [loadingRevenue, setLoadingRevenue] = useState(false);
 
   // AI Staff Roster Optimizer State
   const [rosterData, setRosterData] = useState<any | null>(null);
@@ -52,6 +95,25 @@ export default function OwnerDashboard({
   const [loadingLoyalty, setLoadingLoyalty] = useState(false);
   const [selectedLoyaltyTierFilter, setSelectedLoyaltyTierFilter] = useState<string>('All');
 
+  // Waitlist State
+  const [waitlistEntries, setWaitlistEntries] = useState<any[]>([]);
+  const [loadingWaitlist, setLoadingWaitlist] = useState(false);
+
+  const handleFetchRevenueForecast = async () => {
+    if (!ownerTenantId) return;
+    setLoadingRevenue(true);
+    try {
+      const res = await api.getRevenueForecast(ownerTenantId);
+      if (res.success) {
+        setRevenueForecast(res.forecast);
+      }
+    } catch (err) {
+      console.error("Error fetching revenue forecast:", err);
+    } finally {
+      setLoadingRevenue(false);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'roster-optimizer' && ownerTenantId && !rosterData) {
       handleFetchRoster();
@@ -59,7 +121,28 @@ export default function OwnerDashboard({
     if (activeTab === 'loyalty' && ownerTenantId && !loyaltyData) {
       handleFetchLoyalty();
     }
+    if (activeTab === 'waitlist' && ownerTenantId) {
+        handleFetchWaitlist();
+    }
+    if (activeTab === 'revenue-insights' && ownerTenantId && !revenueForecast) {
+        handleFetchRevenueForecast();
+    }
   }, [activeTab, ownerTenantId]);
+
+  const handleFetchWaitlist = async () => {
+    if (!ownerTenantId) return;
+    setLoadingWaitlist(true);
+    try {
+      const res = await api.getWaitlist(ownerTenantId);
+      if (res.success) {
+        setWaitlistEntries(res.entries);
+      }
+    } catch (err) {
+      console.error("Error fetching waitlist:", err);
+    } finally {
+      setLoadingWaitlist(false);
+    }
+  };
 
   const handleFetchLoyalty = async () => {
     if (!ownerTenantId) return;
@@ -308,14 +391,16 @@ export default function OwnerDashboard({
 
   // Onboarding Form States
   const [onboardName, setOnboardName] = useState('');
-  const [onboardType, setOnboardType] = useState('salon');
+  const [onboardType, setOnboardType] = useState('Barber Shop');
   const [onboardOwnerName, setOnboardOwnerName] = useState('');
   const [onboardPhone, setOnboardPhone] = useState('');
   const [onboardWhatsapp, setOnboardWhatsapp] = useState('');
-  const [onboardCity] = useState('Jaipur');
+  const [onboardCity, setOnboardCity] = useState('Jaipur');
   const [onboardArea, setOnboardArea] = useState('');
   const [onboardSubmitting, setOnboardSubmitting] = useState(false);
   const [onboardError, setOnboardError] = useState('');
+  const [onboardSuccessToast, setOnboardSuccessToast] = useState<string | null>(null);
+  const [onboardRedirecting, setOnboardRedirecting] = useState(false);
 
   // Editing Service Form State
   const [editServiceName, setEditServiceName] = useState('');
@@ -346,6 +431,8 @@ export default function OwnerDashboard({
   const [formHeroTitle, setFormHeroTitle] = useState('');
   const [formHeroSubtitle, setFormHeroSubtitle] = useState('');
   const [formAboutText, setFormAboutText] = useState('');
+  const [formLogoUrl, setFormLogoUrl] = useState('');
+  const [formHeroImageUrl, setFormHeroImageUrl] = useState('');
   const [formPhone, setFormPhone] = useState('');
   const [formWhatsapp, setFormWhatsapp] = useState('');
   const [formAddress, setFormAddress] = useState('');
@@ -360,6 +447,17 @@ export default function OwnerDashboard({
     offers: true
   });
   const [isPublished, setIsPublished] = useState(false);
+
+  const { getRootProps: getRootPropsLogo, getInputProps: getInputPropsLogo } = useDropzone({
+    onDrop: (files) => files.length > 0 && processImage(files[0], 200, 200).then(setFormLogoUrl),
+    accept: {'image/*': []},
+    multiple: false
+  } as any);
+  const { getRootProps: getRootPropsHero, getInputProps: getInputPropsHero } = useDropzone({
+    onDrop: (files) => files.length > 0 && processImage(files[0], 1200, 600).then(setFormHeroImageUrl),
+    accept: {'image/*': []},
+    multiple: false
+  } as any);
 
   // Status variables
   const [savingWebsite, setSavingWebsite] = useState(false);
@@ -436,6 +534,8 @@ export default function OwnerDashboard({
       }
     } else if (currentPath === '/dashboard/staff') {
       setActiveTab('staff');
+    } else if (currentPath === '/dashboard/staff-management') {
+      setActiveTab('staff-management');
     } else if (currentPath === '/dashboard/forecasting') {
       setActiveTab('forecasting');
     } else if (currentPath === '/dashboard/reviews-intelligence') {
@@ -444,6 +544,8 @@ export default function OwnerDashboard({
       setActiveTab('inventory');
     } else if (currentPath === '/dashboard/roster-optimizer') {
       setActiveTab('roster-optimizer');
+    } else if (currentPath === '/dashboard/waitlist') {
+      setActiveTab('waitlist');
     } else if (currentPath === '/dashboard/loyalty') {
       setActiveTab('loyalty');
     } else if (currentPath === '/dashboard/crm') {
@@ -456,11 +558,13 @@ export default function OwnerDashboard({
       setActiveTab('settings');
     } else if (currentPath === '/dashboard/wallet') {
       setActiveTab('wallet');
+    } else if (currentPath === '/dashboard/revenue-insights') {
+      setActiveTab('revenue-insights');
     }
   }, [currentPath]);
 
   // Handle sidebar navigation click
-  const handleTabChange = (tabId: 'dashboard' | 'builder' | 'bookings' | 'services' | 'forecasting' | 'reviews-intelligence' | 'inventory' | 'roster-optimizer' | 'loyalty' | 'staff' | 'crm' | 'wallet' | 'business-profile' | 'media' | 'settings') => {
+  const handleTabChange = (tabId: 'dashboard' | 'builder' | 'bookings' | 'services' | 'forecasting' | 'reviews-intelligence' | 'inventory' | 'roster-optimizer' | 'loyalty' | 'waitlist' | 'staff' | 'staff-management' | 'crm' | 'wallet' | 'business-profile' | 'media' | 'settings' | 'revenue-insights') => {
     let path = '/dashboard';
     if (tabId === 'builder') path = '/dashboard/website';
     else if (tabId === 'bookings') path = '/dashboard/bookings';
@@ -470,12 +574,15 @@ export default function OwnerDashboard({
     else if (tabId === 'inventory') path = '/dashboard/inventory';
     else if (tabId === 'roster-optimizer') path = '/dashboard/roster-optimizer';
     else if (tabId === 'loyalty') path = '/dashboard/loyalty';
+    else if (tabId === 'waitlist') path = '/dashboard/waitlist';
     else if (tabId === 'staff') path = '/dashboard/staff';
+    else if (tabId === 'staff-management') path = '/dashboard/staff-management';
     else if (tabId === 'crm') path = '/dashboard/crm';
     else if (tabId === 'business-profile') path = '/dashboard/business-profile';
     else if (tabId === 'media') path = '/dashboard/media';
     else if (tabId === 'settings') path = '/dashboard/settings';
     else if (tabId === 'wallet') path = '/dashboard/wallet';
+    else if (tabId === 'revenue-insights') path = '/dashboard/revenue-insights';
 
     setActiveTab(tabId);
     onNavigate(path);
@@ -486,38 +593,111 @@ export default function OwnerDashboard({
   // Onboard Submission Handler
   const handleOnboardSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!onboardName || !onboardOwnerName || !onboardPhone || !onboardArea) {
-      setOnboardError('Please fill in all required fields.');
+    setOnboardError('');
+
+    // 1. Strict required fields validation
+    if (!onboardName || !onboardName.trim()) {
+      setOnboardError('Business Name is required.');
       return;
     }
+    if (onboardName.trim().length < 2) {
+      setOnboardError('Business Name must be at least 2 characters.');
+      return;
+    }
+    if (!onboardOwnerName || !onboardOwnerName.trim()) {
+      setOnboardError('Owner Full Name is required.');
+      return;
+    }
+    if (onboardOwnerName.trim().length < 2) {
+      setOnboardError('Owner Full Name must be at least 2 characters.');
+      return;
+    }
+    if (!onboardPhone || !onboardPhone.trim()) {
+      setOnboardError('Mobile Number is required.');
+      return;
+    }
+    const cleanPhone = onboardPhone.replace(/[^0-9]/g, '');
+    if (cleanPhone.length < 10) {
+      setOnboardError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    if (!onboardCity || !onboardCity.trim()) {
+      setOnboardError('City is required.');
+      return;
+    }
+    if (!onboardArea || !onboardArea.trim()) {
+      setOnboardError('Area / Locality is required.');
+      return;
+    }
+    if (!onboardType) {
+      setOnboardError('Please select a Business Type.');
+      return;
+    }
+
     try {
       setOnboardSubmitting(true);
       setOnboardError('');
+
+      // 2. Map selected Business Type to template registry
+      const templateConfig = getTemplateForBusinessType(onboardType);
       
       const newTenantData = {
-        name: onboardName,
+        name: onboardName.trim(),
         business_type: onboardType,
-        owner_name: onboardOwnerName,
-        phone: onboardPhone,
-        whatsapp_number: onboardWhatsapp || onboardPhone,
-        city: onboardCity,
-        area: onboardArea,
-        address: `${onboardArea}, ${onboardCity}`,
+        owner_name: onboardOwnerName.trim(),
+        phone: onboardPhone.trim(),
+        whatsapp_number: (onboardWhatsapp || onboardPhone).trim(),
+        city: onboardCity.trim(),
+        area: onboardArea.trim(),
+        address: `${onboardArea.trim()}, ${onboardCity.trim()}`,
+        template_id: templateConfig.templateSlug,
         owner_id: "usr_owner_" + Math.random().toString(36).substring(2, 9)
       };
 
+      // 3. Save to database / backend
       const result = await api.createTenant(newTenantData);
+      
       if (result.success && result.tenant) {
+        // 4. Programmatically update activeSalonId and template details in localStorage
+        const businessProfile = {
+          tenant: result.tenant,
+          website: result.website,
+          businessType: onboardType,
+          templateSlug: templateConfig.templateSlug,
+          templateRoute: templateConfig.templateRoute,
+          savedAt: new Date().toISOString()
+        };
+
+        try {
+          localStorage.setItem('activeSalonId', result.tenant.id);
+          localStorage.setItem('selectedTemplate', templateConfig.templateSlug);
+          localStorage.setItem('activeTemplateSlug', templateConfig.templateSlug);
+          localStorage.setItem('nexora_active_business_profile', JSON.stringify(businessProfile));
+          localStorage.setItem('nexora_recent_tenant_id', result.tenant.id);
+        } catch (storageErr) {
+          console.warn('Could not cache business profile to localStorage:', storageErr);
+        }
+
+        // Trigger parent state updates
         onRefreshDB();
         onSelectOwnerTenantId(result.tenant.id);
-        onNavigate('/dashboard/website/templates');
+
+        // 5. Add success notification toast & redirect flag
+        const toastMsg = `Website created successfully! Redirecting to your ${onboardType} dashboard...`;
+        setOnboardSuccessToast(toastMsg);
+        setOnboardRedirecting(true);
+
+        // 6. Trigger immediate navigation route to '/templates/[template-slug]' upon success
+        const targetRoute = `/templates/${templateConfig.templateSlug}`;
+        window.history.pushState({}, '', targetRoute);
+        onNavigate(targetRoute);
       } else {
-        setOnboardError(result.error || 'Failed to register salon. Please try again.');
+        setOnboardError(result.error || 'Failed to register salon. Please check details and try again.');
+        setOnboardSubmitting(false);
       }
     } catch (err: any) {
-      console.error(err);
-      setOnboardError('An unexpected error occurred during salon registration.');
-    } finally {
+      console.error('Salon registration error:', err);
+      setOnboardError('An unexpected network error occurred during salon registration.');
       setOnboardSubmitting(false);
     }
   };
@@ -605,8 +785,22 @@ export default function OwnerDashboard({
         setLoading(true);
         const fullDB = await api.getFullDB();
         
-        // Find tenant
-        const activeTenant = fullDB.tenants.find((t: any) => t.id === ownerTenantId);
+        // Find tenant with localStorage fallback for immediate onboarding persistence
+        let activeTenant = fullDB.tenants.find((t: any) => t.id === ownerTenantId);
+        if (!activeTenant) {
+          try {
+            const rawProfile = localStorage.getItem('nexora_active_business_profile');
+            if (rawProfile) {
+              const parsed = JSON.parse(rawProfile);
+              if (parsed?.tenant && (parsed.tenant.id === ownerTenantId || ownerTenantId !== 'new')) {
+                activeTenant = parsed.tenant;
+              }
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+
         if (activeTenant) {
           setTenant(activeTenant);
           setProfileName(activeTenant.name);
@@ -628,6 +822,8 @@ export default function OwnerDashboard({
             setFormHeroTitle(web.hero_title);
             setFormHeroSubtitle(web.hero_subtitle);
             setFormAboutText(web.about_text);
+            setFormLogoUrl(web.logo_url || '');
+            setFormHeroImageUrl(web.hero_image_url || '');
             setFormPhone(web.phone);
             setFormWhatsapp(web.whatsapp_number);
             setFormAddress(web.address);
@@ -781,6 +977,8 @@ export default function OwnerDashboard({
         hero_title: formHeroTitle,
         hero_subtitle: formHeroSubtitle,
         about_text: formAboutText,
+        logo_url: formLogoUrl,
+        hero_image_url: formHeroImageUrl,
         phone: formPhone,
         whatsapp_number: formWhatsapp,
         address: formAddress,
@@ -933,8 +1131,57 @@ export default function OwnerDashboard({
   };
 
   if (ownerTenantId === 'new') {
+    const activeSalonId = localStorage.getItem('activeSalonId');
+    const selectedTemplate = localStorage.getItem('selectedTemplate') || localStorage.getItem('activeTemplateSlug');
+    const hasValidSession = Boolean(activeSalonId || localStorage.getItem('nexora_active_business_profile'));
+
+    if (onboardRedirecting || (hasValidSession && selectedTemplate)) {
+      if (activeSalonId && activeSalonId !== 'new') {
+        onSelectOwnerTenantId(activeSalonId);
+      }
+      if (selectedTemplate && currentPath !== `/templates/${selectedTemplate}`) {
+        const targetRoute = `/templates/${selectedTemplate}`;
+        window.history.pushState({}, '', targetRoute);
+        onNavigate(targetRoute);
+      }
+      return (
+        <div className="bg-slate-950 min-h-screen flex items-center justify-center p-6 text-white text-center font-sans">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30">
+              <CheckCircle2 className="w-6 h-6 animate-pulse" />
+            </div>
+            <h3 className="text-lg font-extrabold text-white">Active Template Session Loaded</h3>
+            <p className="text-xs text-slate-300 font-medium leading-relaxed">
+              Active session detected. Loading template dashboard...
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     return (
-      <div className="bg-slate-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex justify-center items-center text-left">
+      <div className="bg-slate-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8 flex justify-center items-center text-left relative">
+        {/* Success Toast Modal */}
+        {onboardSuccessToast && (
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl border border-slate-100 space-y-4 animate-fadeIn">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-lg font-black text-slate-900">Success!</h3>
+                <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                  {onboardSuccessToast}
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-indigo-600 text-xs font-semibold pt-2">
+                <span className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></span>
+                <span>Loading your custom template preview...</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="max-w-xl w-full bg-white rounded-3xl border border-slate-200 p-8 sm:p-10 shadow-xl space-y-6">
           <div className="text-center space-y-2">
             <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white mx-auto shadow-md">
@@ -947,8 +1194,9 @@ export default function OwnerDashboard({
           </div>
 
           {onboardError && (
-            <div className="bg-rose-50 border border-rose-100 rounded-xl p-3 text-rose-700 text-xs font-semibold">
-              ⚠️ {onboardError}
+            <div className="bg-rose-50 border border-rose-100 rounded-xl p-3 text-rose-700 text-xs font-semibold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+              <span>{onboardError}</span>
             </div>
           )}
 
@@ -971,11 +1219,17 @@ export default function OwnerDashboard({
                 <select
                   value={onboardType}
                   onChange={(e) => setOnboardType(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer font-medium"
                 >
-                  <option value="salon">Luxury Beauty Salon</option>
-                  <option value="barber">Modern Barber Shop</option>
-                  <option value="spa">Spa & Wellness Center</option>
+                  <option value="Barber Shop">Barber Shop</option>
+                  <option value="Unisex Salon">Unisex Salon</option>
+                  <option value="Men's Salon">Men's Salon</option>
+                  <option value="Ladies Parlour">Ladies Parlour</option>
+                  <option value="Spa & Grooming">Spa & Grooming</option>
+                  <option value="Hair Studio">Hair Studio</option>
+                  <option value="Nails Studio">Nails Studio</option>
+                  <option value="Beauty & Grooming">Beauty & Grooming</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
             </div>
@@ -1023,9 +1277,10 @@ export default function OwnerDashboard({
                 <input 
                   type="text"
                   required
-                  disabled
                   value={onboardCity}
-                  className="w-full bg-slate-100 border border-slate-200 rounded-xl p-3 text-xs outline-none cursor-not-allowed"
+                  onChange={(e) => setOnboardCity(e.target.value)}
+                  placeholder="e.g. Jaipur"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
               </div>
 
@@ -1044,11 +1299,14 @@ export default function OwnerDashboard({
 
             <button 
               type="submit"
-              disabled={onboardSubmitting}
-              className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs cursor-pointer shadow-lg flex items-center justify-center gap-2 mt-4"
+              disabled={onboardSubmitting || onboardRedirecting}
+              className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-xl font-bold text-xs cursor-pointer shadow-lg flex items-center justify-center gap-2 mt-4 transition"
             >
-              {onboardSubmitting ? (
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              {onboardSubmitting || onboardRedirecting ? (
+                <div className="flex items-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  <span>{onboardRedirecting ? 'Redirecting to Template...' : 'Creating Business & Website...'}</span>
+                </div>
               ) : (
                 <>
                   <span>Create Business & Website</span>
@@ -1119,10 +1377,13 @@ export default function OwnerDashboard({
               { id: 'inventory', label: 'Inventory & Stock', icon: Package },
               { id: 'roster-optimizer', label: 'AI Roster Optimizer', icon: Users },
               { id: 'loyalty', label: 'Client Loyalty Tiers', icon: Crown },
+              { id: 'waitlist', label: 'Automated Waitlist', icon: Clock },
               { id: 'business-profile', label: 'Business Profile', icon: Building },
               { id: 'media', label: 'Media', icon: Image },
               { id: 'crm', label: 'AI CRM', icon: Sparkles },
               { id: 'staff', label: 'Staff', icon: Users },
+              { id: 'staff-management', label: 'Staff Management', icon: Users },
+              { id: 'revenue-insights', label: 'Predictive Revenue', icon: TrendingUp },
               { id: 'settings', label: 'Settings', icon: Settings }
             ].map((tab) => {
               const Icon = tab.icon;
@@ -2120,6 +2381,35 @@ export default function OwnerDashboard({
           </div>
         )}
 
+        {/* TAB: Revenue Insights */}
+        {activeTab === 'revenue-insights' && (
+          <div className="space-y-6 animate-fadeIn text-left">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-950">Predictive Revenue Insights</h1>
+            <p className="text-xs text-slate-500">30-day AI-powered revenue growth projection.</p>
+            
+            {loadingRevenue ? (
+              <div className="p-8 text-center text-slate-500">Generating AI revenue projections...</div>
+            ) : revenueForecast && revenueForecast.projections ? (
+              <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+                <svg viewBox="0 0 1000 300" className="w-full h-64" style={{ display: 'block' }}>
+                  <polyline
+                    fill="none"
+                    stroke="#4f46e5"
+                    strokeWidth="4"
+                    points={revenueForecast.projections.map((p, i) => `${(i / (revenueForecast.projections.length - 1)) * 1000},${300 - (p.revenue / Math.max(...revenueForecast.projections.map(p => p.revenue))) * 250}`).join(' ')}
+                  />
+                </svg>
+                <div className="flex justify-between mt-4 text-xs font-mono text-slate-500">
+                  <span>Today</span>
+                  <span>+30 Days</span>
+                </div>
+              </div>
+            ) : (
+              <div className="p-8 text-center text-slate-400">No data available for revenue prediction.</div>
+            )}
+          </div>
+        )}
+
         {/* TAB 2: Visual Builder & Split-screen preview */}
         {activeTab === 'builder' && (
           <div className="space-y-6 animate-fadeIn text-left">
@@ -2263,24 +2553,65 @@ export default function OwnerDashboard({
                       {/* Sub-section: Template selection */}
                       {(isAll || isTemplates) && (
                         <div className="space-y-4">
-                          <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">1. Selected Premium Template</label>
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            {[
-                              { id: 'tpl_luxury', name: 'Luxury Beauty', desc: 'Serif fonts, gold details, warm and elegant high-contrast styling.' },
-                              { id: 'tpl_barber', name: 'Modern Barber', desc: 'Monospace code accents, bold borders, vintage urban vibes.' },
-                              { id: 'tpl_spa', name: 'Spa & Wellness', desc: 'Sans-serif fonts, organic spacing, lush relaxing color tones.' }
-                            ].map((t) => (
-                              <div 
-                                key={t.id}
-                                onClick={() => setFormTemplate(t.id)}
-                                className={`p-4 border rounded-2xl text-left cursor-pointer transition-all ${
-                                  formTemplate === t.id ? 'border-indigo-600 bg-indigo-50/10 ring-2 ring-indigo-500/10' : 'border-slate-200 hover:bg-slate-50'
-                                }`}
-                              >
-                                <span className="text-xs font-extrabold block text-indigo-900 mb-1">{t.name}</span>
-                                <p className="text-[10px] text-slate-500 leading-relaxed">{t.desc}</p>
-                              </div>
-                            ))}
+                          <div className="flex items-center justify-between">
+                            <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                              1. Select Business Template ({BUSINESS_TYPES.filter(b => b.value !== 'Other').length} Available)
+                            </label>
+                            <span className="text-[10px] text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
+                              Auto-synced with Business Type
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
+                            {BUSINESS_TYPES.filter(b => b.value !== 'Other').map((t) => {
+                              const isSelected = formTemplate === t.templateSlug || formTemplate === t.value;
+                              return (
+                                <div 
+                                  key={t.templateSlug}
+                                  onClick={() => setFormTemplate(t.templateSlug)}
+                                  className={`p-3.5 border rounded-2xl text-left cursor-pointer transition-all flex flex-col justify-between ${
+                                    isSelected 
+                                      ? 'border-indigo-600 bg-indigo-50/20 ring-2 ring-indigo-500/20 shadow-sm' 
+                                      : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                                  }`}
+                                >
+                                  <div>
+                                    <div className="flex items-center justify-between mb-1">
+                                      <span className="text-xs font-black text-slate-900">{t.label}</span>
+                                      {t.badge && (
+                                        <span className="text-[9px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded">
+                                          {t.badge}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className="text-[10px] font-mono text-indigo-600 font-semibold block mb-1.5">
+                                      {t.industryType}
+                                    </span>
+                                    <p className="text-[10px] text-slate-500 leading-snug line-clamp-2">
+                                      {t.description}
+                                    </p>
+                                  </div>
+
+                                  <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                                    <span className={`text-[10px] font-bold ${isSelected ? 'text-indigo-600' : 'text-slate-400'}`}>
+                                      {isSelected ? '✓ Selected' : 'Tap to Select'}
+                                    </span>
+                                    <button 
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        onNavigate(t.templateRoute);
+                                      }}
+                                      className="text-[10px] bg-slate-900 hover:bg-indigo-600 text-white font-bold px-2 py-1 rounded-md transition cursor-pointer flex items-center gap-1"
+                                      title={`Launch live preview of ${t.label} template`}
+                                    >
+                                      <span>Preview</span>
+                                      <ExternalLink className="w-2.5 h-2.5" />
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
@@ -2326,6 +2657,23 @@ export default function OwnerDashboard({
                               onChange={(e) => setFormAboutText(e.target.value)}
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs outline-none focus:ring-1 focus:ring-indigo-500 h-20 resize-none"
                             />
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Logo Image (Square)</label>
+                              <div {...getRootPropsLogo()} className="w-full bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:border-indigo-400 transition-colors">
+                                <input {...getInputPropsLogo()} />
+                                {formLogoUrl ? <img src={formLogoUrl} alt="Logo" className="w-12 h-12 mx-auto" /> : <p className="text-[10px] text-slate-400">Drag or click to upload logo</p>}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Hero Background (16:9)</label>
+                              <div {...getRootPropsHero()} className="w-full bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-4 text-center cursor-pointer hover:border-indigo-400 transition-colors">
+                                <input {...getInputPropsHero()} />
+                                {formHeroImageUrl ? <img src={formHeroImageUrl} alt="Hero" className="w-full h-20 object-cover rounded-lg" /> : <p className="text-[10px] text-slate-400">Drag or click to upload hero</p>}
+                              </div>
+                            </div>
                           </div>
 
                           <div>
@@ -4054,6 +4402,24 @@ export default function OwnerDashboard({
           </div>
         )}
 
+        {/* TAB: Staff Management & Roster */}
+        {activeTab === 'staff-management' && (
+          <StaffManagementTab 
+            staff={staff} 
+            services={services} 
+            bookings={bookings} 
+            tenantId={ownerTenantId}
+            onRefresh={onRefreshDB}
+          />
+        )}
+
+        {/* TAB: Automated Waitlist */}
+        {activeTab === 'waitlist' && (
+          <div className="p-6 sm:p-10 space-y-8 animate-fadeIn max-w-7xl mx-auto text-left">
+            <ClientWaitlist />
+          </div>
+        )}
+
         {/* TAB 6: Client CRM */}
         {activeTab === 'crm' && (
           <div className="space-y-6 animate-fadeIn">
@@ -4297,7 +4663,65 @@ export default function OwnerDashboard({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Upcoming VIP Appointments */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden mt-6">
+              <div className="p-5 border-b border-slate-200 flex items-center justify-between">
+                <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                  <Crown className="w-4 h-4 text-amber-500" />
+                  Upcoming VIP Appointments
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead className="bg-slate-50 text-slate-500 uppercase font-mono border-b border-slate-200">
+                    <tr>
+                      <th className="p-4 font-bold">Client Name</th>
+                      <th className="p-4 font-bold">Time</th>
+                      <th className="p-4 font-bold">Treatment</th>
+                      <th className="p-4 font-bold">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {bookings.filter(b => {
+                      const cust = customers.find(c => c.id === b.customer_id);
+                      return cust?.crm_tags?.includes('VIP') && new Date(b.appointment_date) >= new Date();
+                    }).length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="p-8 text-center text-slate-400">No upcoming VIP appointments.</td>
+                      </tr>
+                    ) : (
+                      bookings.filter(b => {
+                        const cust = customers.find(c => c.id === b.customer_id);
+                        return cust?.crm_tags?.includes('VIP') && new Date(b.appointment_date) >= new Date();
+                      }).map((b) => {
+                        const cust = customers.find(c => c.id === b.customer_id);
+                        return (
+                          <tr key={b.id} className="hover:bg-slate-50/50">
+                            <td className="p-4 font-bold text-slate-950">{b.customer_name}</td>
+                            <td className="p-4 font-mono text-slate-500">{b.appointment_date} {b.appointment_time}</td>
+                            <td className="p-4 text-slate-700">{b.service_name}</td>
+                            <td className="p-4">
+                              <button
+                                onClick={async () => {
+                                  const res = await api.sendVIPReminder(ownerTenantId, b.id, b.customer_name, b.customer_phone);
+                                  if (res.success) alert(res.message);
+                                  else alert("Failed to send reminder");
+                                }}
+                                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-[10px] cursor-pointer"
+                              >
+                                Send Reminder
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
               {/* Summary Cards */}
               <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex flex-col justify-center">
                 <p className="text-xs text-slate-500 font-mono font-bold uppercase tracking-wider mb-1">Customers Analyzed</p>
@@ -4562,10 +4986,15 @@ export default function OwnerDashboard({
                       onChange={(e) => setProfileType(e.target.value)}
                       className="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
                     >
-                      <option value="salon">Salon & Styling Studio</option>
-                      <option value="spa">Luxury Spa & Wellness</option>
-                      <option value="clinical">Clinical Skin Care</option>
-                      <option value="barber">Barbershop</option>
+                      <option value="barber_shop">Barber Shop</option>
+                      <option value="unisex_salon">Unisex Salon</option>
+                      <option value="mens_salon">Men's Salon</option>
+                      <option value="ladies_parlour">Ladies Parlour</option>
+                      <option value="spa_grooming">Spa & Grooming</option>
+                      <option value="hair_studio">Hair Studio</option>
+                      <option value="nails_studio">Nails Studio</option>
+                      <option value="beauty_grooming">Beauty & Grooming</option>
+                      <option value="other">Other</option>
                     </select>
                   </div>
                 </div>

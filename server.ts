@@ -34,8 +34,10 @@ import {
   JobCandidate,
   JobPost,
   JobApplication,
-  ScheduleNotification
+  ScheduleNotification,
+  WaitlistEntry
 } from "./src/types";
+import { createBarberBookingRouter } from "./src/server/barberBookingRouter";
 
 // App setup
 const app = express();
@@ -82,6 +84,7 @@ interface DatabaseSchema {
   job_posts: JobPost[];
   job_applications: JobApplication[];
   schedule_notifications?: ScheduleNotification[];
+  waitlist: WaitlistEntry[];
   audit_logs: any[];
 }
 
@@ -260,83 +263,18 @@ function getSeededData(): DatabaseSchema {
     }
   ];
 
-  // 3 Tenants (Jaipur-based)
+  // 10 Jaipur Tenants (Landmark locations)
   const tenants: Tenant[] = [
-    {
-      id: "ten_aura",
-      owner_id: "usr_owner_aura",
-      name: "Aura Premium Salon & Bridal",
-      business_type: "salons",
-      phone: "+91 98765 43210",
-      email: "aura@nexora.io",
-      address: "Plot 42, Girdhar Marg, Sector 9, Malviya Nagar",
-      city: "Jaipur",
-      state: "Rajasthan",
-      area: "Malviya Nagar",
-      logo_url: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=200&h=200",
-      banner_url: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=1200",
-      description: "A luxury lifestyle beauty salon specializing in premium bridal makeovers, global hair transformations, and organic facials.",
-      approval_status: "approved",
-      is_active: true,
-      latitude: 26.8529,
-      longitude: 75.8048,
-      rating: 4.9,
-      reviews_count: 142,
-      starting_price: 950,
-      is_verified: true,
-      created_at: seedTime,
-      updated_at: seedTime
-    },
-    {
-      id: "ten_imperial",
-      owner_id: "usr_owner_imperial",
-      name: "The Imperial Royal Barbers",
-      business_type: "barber shops",
-      phone: "+91 99999 88888",
-      email: "imperial@nexora.io",
-      address: "12, Ashok Marg, Near C-Scheme Post Office, C-Scheme",
-      city: "Jaipur",
-      state: "Rajasthan",
-      area: "C-Scheme",
-      logo_url: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=200&h=200",
-      banner_url: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=1200",
-      description: "A traditional men's grooming lounge reviving the fine art of hot towel shaves, meticulous haircuts, and royal beard treatments.",
-      approval_status: "approved",
-      is_active: true,
-      latitude: 26.9116,
-      longitude: 75.8021,
-      rating: 4.8,
-      reviews_count: 98,
-      starting_price: 250,
-      is_verified: true,
-      created_at: seedTime,
-      updated_at: seedTime
-    },
-    {
-      id: "ten_zen",
-      owner_id: "usr_owner_zen",
-      name: "Siam Zen Wellness Spa",
-      business_type: "spas",
-      phone: "+91 95555 44444",
-      email: "zen@nexora.io",
-      address: "B-8, Gali No. 3, Govind Marg, Raja Park",
-      city: "Jaipur",
-      state: "Rajasthan",
-      area: "Raja Park",
-      logo_url: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=200&h=200",
-      banner_url: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=1200",
-      description: "Indulge in ancient therapeutic rituals. We offer deep-tissue Thai massages, aromatherapy, and hot stone stress-relieving sessions.",
-      approval_status: "approved",
-      is_active: true,
-      latitude: 26.8993,
-      longitude: 75.8315,
-      rating: 4.7,
-      reviews_count: 64,
-      starting_price: 1200,
-      is_verified: true,
-      created_at: seedTime,
-      updated_at: seedTime
-    }
+    { id: "ten_rambagh", owner_id: "usr_owner_rambagh", name: "Rambagh Palace Royal Spa", business_type: "spas", phone: "+91 141 2211919", email: "spa@rambagh.com", address: "Bhawani Singh Rd, Rambagh", city: "Jaipur", state: "Rajasthan", area: "Rambagh Palace", logo_url: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=200", banner_url: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=1200", description: "Royal wellness rituals within the historic Rambagh Palace.", approval_status: "approved", is_active: true, rating: 5.0, reviews_count: 500, starting_price: 3000, is_verified: true, created_at: seedTime, updated_at: seedTime },
+    { id: "ten_city", owner_id: "usr_owner_city", name: "City Palace Beauty Lounge", business_type: "salons", phone: "+91 141 4088888", email: "salon@citypalace.com", address: "City Palace Complex", city: "Jaipur", state: "Rajasthan", area: "City Palace", logo_url: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=200", banner_url: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=1200", description: "Regal styling services in the heart of the City Palace.", approval_status: "approved", is_active: true, rating: 4.9, reviews_count: 300, starting_price: 1500, is_verified: true, created_at: seedTime, updated_at: seedTime },
+    { id: "ten_jal", owner_id: "usr_owner_jal", name: "Jal Mahal Wellness Center", business_type: "spas", phone: "+91 141 2673333", email: "wellness@jalmahal.com", address: "Amer Rd, near Jal Mahal", city: "Jaipur", state: "Rajasthan", area: "Jal Mahal", logo_url: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=200", banner_url: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=1200", description: "Serene wellness overlooking the beautiful Jal Mahal lake.", approval_status: "approved", is_active: true, rating: 4.8, reviews_count: 200, starting_price: 2000, is_verified: true, created_at: seedTime, updated_at: seedTime },
+    { id: "ten_amer", owner_id: "usr_owner_amer", name: "Amer Fort Heritage Salon", business_type: "salons", phone: "+91 141 2530293", email: "salon@amerfort.com", address: "Amer Road, Amer", city: "Jaipur", state: "Rajasthan", area: "Amer Fort Road", logo_url: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=200", banner_url: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=1200", description: "Iconic grooming services at the gateway to Amer Fort.", approval_status: "approved", is_active: true, rating: 4.7, reviews_count: 150, starting_price: 800, is_verified: true, created_at: seedTime, updated_at: seedTime },
+    { id: "ten_civil", owner_id: "usr_owner_civil", name: "Civil Lines Elite Studio", business_type: "salons", phone: "+91 141 2221111", email: "elite@civil.com", address: "Civil Lines", city: "Jaipur", state: "Rajasthan", area: "Civil Lines", logo_url: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=200", banner_url: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=1200", description: "Exclusive high-end salon for Civil Lines residents.", approval_status: "approved", is_active: true, rating: 4.9, reviews_count: 400, starting_price: 2000, is_verified: true, created_at: seedTime, updated_at: seedTime },
+    { id: "ten_c-scheme", owner_id: "usr_owner_cscheme", name: "C-Scheme Signature Salon", business_type: "salons", phone: "+91 141 2377777", email: "sig@cscheme.com", address: "C-Scheme", city: "Jaipur", state: "Rajasthan", area: "C-Scheme", logo_url: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=200", banner_url: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=1200", description: "The premier destination for style in C-Scheme.", approval_status: "approved", is_active: true, rating: 4.8, reviews_count: 350, starting_price: 1200, is_verified: true, created_at: seedTime, updated_at: seedTime },
+    { id: "ten_malviya", owner_id: "usr_owner_malviya", name: "Malviya Nagar Beauty Haven", business_type: "salons", phone: "+91 141 2554444", email: "haven@malviya.com", address: "Malviya Nagar", city: "Jaipur", state: "Rajasthan", area: "Malviya Nagar", logo_url: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=200", banner_url: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=1200", description: "Your neighborhood luxury escape in Malviya Nagar.", approval_status: "approved", is_active: true, rating: 4.6, reviews_count: 250, starting_price: 700, is_verified: true, created_at: seedTime, updated_at: seedTime },
+    { id: "ten_raja", owner_id: "usr_owner_raja", name: "Raja Park Spa Retreat", business_type: "spas", phone: "+91 141 2621111", email: "retreat@rajapark.com", address: "Raja Park", city: "Jaipur", state: "Rajasthan", area: "Raja Park", logo_url: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=200", banner_url: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=1200", description: "Relax and rejuvenate in the heart of Raja Park.", approval_status: "approved", is_active: true, rating: 4.5, reviews_count: 180, starting_price: 1500, is_verified: true, created_at: seedTime, updated_at: seedTime },
+    { id: "ten_vaishali", owner_id: "usr_owner_vaishali", name: "Vaishali Nagar Elegance", business_type: "salons", phone: "+91 141 2356666", email: "elegance@vaishali.com", address: "Vaishali Nagar", city: "Jaipur", state: "Rajasthan", area: "Vaishali Nagar", logo_url: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=200", banner_url: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=1200", description: "Sophisticated styling for the residents of Vaishali Nagar.", approval_status: "approved", is_active: true, rating: 4.8, reviews_count: 280, starting_price: 1000, is_verified: true, created_at: seedTime, updated_at: seedTime },
+    { id: "ten_tonk", owner_id: "usr_owner_tonk", name: "Tonk Road Style Hub", business_type: "salons", phone: "+91 141 2721111", email: "hub@tonkroad.com", address: "Tonk Road", city: "Jaipur", state: "Rajasthan", area: "Tonk Road", logo_url: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=200", banner_url: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=1200", description: "Modern cuts and styling hub on Tonk Road.", approval_status: "approved", is_active: true, rating: 4.5, reviews_count: 120, starting_price: 600, is_verified: true, created_at: seedTime, updated_at: seedTime }
   ];
 
   // Websites for each tenant
@@ -649,6 +587,7 @@ function getSeededData(): DatabaseSchema {
     job_posts,
     job_applications,
     schedule_notifications: [],
+    waitlist: [],
     audit_logs: []
   };
 }
@@ -661,6 +600,9 @@ app.get("/api/db", (req, res) => {
   const db = loadDB();
   res.json(db);
 });
+
+// Advanced Barber Appointment Booking Engine
+app.use("/api/barber-booking", createBarberBookingRouter(loadDB, saveDB));
 
 // Reset database
 app.post("/api/db/reset", (req, res) => {
@@ -707,7 +649,7 @@ app.post("/api/tenants", (req, res) => {
   const newWebsite: TenantWebsite = {
     id: "web_" + newTenant.id,
     tenant_id: newTenant.id,
-    template_id: "tpl_luxury", // Default template
+    template_id: req.body.template_id || (req.body.business_type === 'Barber Shop' || req.body.business_type === 'barber_shop' ? 'barber-shop' : 'tpl_luxury'),
     slug: newTenant.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
     website_title: `${newTenant.name} | ${newTenant.area}`,
     hero_title: `Welcome to ${newTenant.name}`,
@@ -1039,6 +981,25 @@ app.put("/api/appointments/:id", (req, res) => {
           db.appointments[idx].customer_cashback_earned = parseFloat(((db.appointments[idx].customer_cashback_earned || 0) + cashbackEarned).toFixed(2));
         }
       }
+    }
+
+    // Cancellation logic
+    if (newStatus === 'cancelled' && oldApt.status !== 'cancelled') {
+      const waitlistCandidates = db.waitlist.filter(w => 
+        w.tenant_id === oldApt.tenant_id && 
+        w.service_id === oldApt.service_id && 
+        w.requested_date === oldApt.appointment_date && 
+        w.requested_time === oldApt.appointment_time &&
+        w.status === 'pending'
+      );
+      
+      waitlistCandidates.forEach(w => {
+        console.log(`Notifying ${w.customer_name} about available slot at ${w.requested_time}`);
+        const wIdx = db.waitlist.findIndex(e => e.id === w.id);
+        if (wIdx !== -1) {
+            db.waitlist[wIdx].status = 'notified';
+        }
+      });
     }
 
     // Complete transaction flow
@@ -2075,6 +2036,55 @@ Return ONLY valid JSON.`;
   }
 });
 
+// Automated SMS/In-App Notification for VIP Clients
+app.post("/api/ai/send-vip-reminder", (req, res) => {
+  const { tenant_id, appointment_id, customer_name, customer_phone } = req.body;
+  if (!tenant_id || !appointment_id || !customer_name || !customer_phone) 
+    return res.status(400).json({ error: "Missing required details" });
+
+  const db = loadDB();
+  db.audit_logs.push({
+    id: "aud_" + Math.random().toString(36).substring(2, 9),
+    event: "vip_reminder_sent",
+    tenant_id,
+    reference_id: appointment_id,
+    description: `Automated VIP appointment reminder sent to ${customer_name} (${customer_phone}) for appointment ${appointment_id}.`,
+    created_at: new Date().toISOString()
+  });
+  saveDB(db);
+  res.json({ success: true, message: `VIP reminder sent to ${customer_name}` });
+});
+
+
+// AI Revenue Forecast Endpoint (Gemini 3.8 Flash)
+app.post("/api/ai/revenue-forecast", async (req, res) => {
+  const { tenant_id } = req.body;
+  if (!tenant_id) return res.status(400).json({ error: "tenant_id required" });
+
+  const db = loadDB();
+  const tenant = db.tenants.find(t => t.id === tenant_id);
+  const tenantAppointments = db.appointments.filter(a => a.tenant_id === tenant_id);
+
+  try {
+    const prompt = `Analyze historical revenue data for salon "${tenant?.name || 'Salon'}":
+    Appointments: ${JSON.stringify(tenantAppointments.slice(-30).map(a => ({ date: a.appointment_date, amount: a.total_amount })))}
+    
+    Generate a 30-day daily revenue projection. Return ONLY valid JSON in this format: { "projections": [ { "date": "YYYY-MM-DD", "revenue": 1200 } ] }`;
+
+    const response = await gemini.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: prompt,
+      config: { responseMimeType: 'application/json' }
+    });
+
+    const forecastData = JSON.parse(response.text || "{}");
+    res.json({ success: true, forecast: forecastData });
+  } catch (err: any) {
+    console.error("Error generating revenue forecast:", err);
+    res.status(500).json({ error: err.message || "Failed to generate revenue forecast" });
+  }
+});
+
 // AI Review Summary & Service Improvement Endpoint (Gemini 3.8 Flash)
 app.post("/api/ai/review-summary", async (req, res) => {
   const { tenant_id } = req.body;
@@ -2391,6 +2401,67 @@ Return ONLY valid JSON.`;
     console.error("Error generating loyalty tiers:", err);
     res.status(500).json({ error: err.message || "Failed to generate loyalty tiers" });
   }
+});
+
+// AI Recommended Services Endpoint (Gemini 3.8 Flash)
+app.post("/api/ai/recommendations", async (req, res) => {
+  const { tenant_id, booking_history } = req.body;
+  if (!tenant_id) return res.status(400).json({ error: "tenant_id required" });
+
+  const db = loadDB();
+  const tenantServices = db.services.filter(s => s.tenant_id === tenant_id && s.status === 'active');
+
+  try {
+    const prompt = `You are an expert AI salon stylist assistant. Analyze the following client booking history:
+    Booking History: ${JSON.stringify(booking_history)}
+    Available Services: ${JSON.stringify(tenantServices.map(s => ({ id: s.id, name: s.name, category: s.category_name })))}
+    
+    Recommend up to 3 relevant services the customer might like to book next, based on their history. Return ONLY a JSON array of service IDs.`;
+
+    const response = await gemini.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json'
+      }
+    });
+
+    const recommendations = JSON.parse(response.text || "[]");
+    res.json({ success: true, recommendations });
+  } catch (err: any) {
+    console.error("Error generating recommendations:", err);
+    res.status(500).json({ error: err.message || "Failed to generate recommendations" });
+  }
+});
+
+// Waitlist API Endpoints
+app.post("/api/waitlist/join", (req, res) => {
+  const { tenant_id, customer_name, customer_phone, service_id, requested_date, requested_time } = req.body;
+  if (!tenant_id || !customer_name || !customer_phone || !service_id || !requested_date || !requested_time) 
+    return res.status(400).json({ error: "Missing required fields" });
+
+  const db = loadDB();
+  const entry: WaitlistEntry = {
+    id: "wtl_" + Math.random().toString(36).substring(2, 9),
+    tenant_id,
+    customer_name,
+    customer_phone,
+    service_id,
+    requested_date,
+    requested_time,
+    status: 'pending',
+    created_at: new Date().toISOString()
+  };
+  db.waitlist.push(entry);
+  saveDB(db);
+  res.json({ success: true, entry });
+});
+
+app.get("/api/waitlist", (req, res) => {
+  const { tenant_id } = req.query;
+  if (!tenant_id) return res.status(400).json({ error: "tenant_id required" });
+  const db = loadDB();
+  res.json({ success: true, entries: db.waitlist.filter(w => w.tenant_id === tenant_id) });
 });
 
 // Initialize seed data on startup

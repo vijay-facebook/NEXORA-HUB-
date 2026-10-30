@@ -1,0 +1,10 @@
+export { default as BarberShopTemplate } from './barber-shop';
+export { default as UnisexSalonTemplate } from './unisex-salon';
+export { default as MensSalonTemplate } from './mens-salon';
+export { default as LadiesParlourTemplate } from './ladies-parlour';
+export { default as SpaGroomingTemplate } from './spa-grooming';
+export { default as HairStudioTemplate } from './hair-studio';
+export { default as NailsStudioTemplate } from './nails-studio';
+export { default as BeautyGroomingTemplate } from './beauty-grooming';
+export * from '../config/templateRegistry';
+export * from '../config/templateTypes';

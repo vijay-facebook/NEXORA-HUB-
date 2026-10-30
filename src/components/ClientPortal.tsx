@@ -212,13 +212,28 @@ export default function ClientPortal({ onNavigateHome }: ClientPortalProps) {
               </div>
             </div>
             
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col justify-center items-center text-center">
-              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
-                <Wallet className="w-8 h-8" />
+            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col justify-center text-left">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center">
+                  <Wallet className="w-7 h-7" />
+                </div>
+                <div>
+                  <p className="text-slate-500 font-medium text-sm">Loyalty Points</p>
+                  <h3 className="text-3xl font-black text-slate-900">{totalPoints.toFixed(0)} Points</h3>
+                </div>
               </div>
-              <p className="text-slate-500 font-medium">Total Nexora Points</p>
-              <h3 className="text-4xl font-black text-slate-900 mt-1">Rs. {totalPoints.toFixed(2)}</h3>
-              <p className="text-xs text-slate-400 mt-2">Available across {customerProfiles.length} salons</p>
+              
+              <div className="w-full bg-slate-100 rounded-full h-3 mb-2 overflow-hidden">
+                <div 
+                  className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min((totalPoints / 5000) * 100, 100)}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-slate-400 font-medium">
+                {5000 - totalPoints > 0 
+                  ? `${(5000 - totalPoints).toFixed(0)} points to reach next reward` 
+                  : 'Reward unlocked!'}
+              </p>
             </div>
           </div>
         </Entrance>

@@ -105,6 +105,80 @@
         "profile_completion_score": 100,
         "total_score": 37.2
       }
+    },
+    {
+      "id": "ten_p6kxpup",
+      "created_at": "2026-10-28T11:38:00.368Z",
+      "updated_at": "2026-10-28T11:38:00.368Z",
+      "approval_status": "pending",
+      "is_active": true,
+      "rating": 5,
+      "reviews_count": 0,
+      "is_verified": false,
+      "starting_price": 300,
+      "name": "Crown & Blade Barber Lounge",
+      "business_type": "Barber Shop",
+      "owner_name": "Vikram Singh",
+      "phone": "9829012345",
+      "city": "Jaipur",
+      "area": "Vaishali Nagar",
+      "template_id": "barber-shop",
+      "ranking_score": 40.8,
+      "ranking_breakdown": {
+        "qr_payments_score": 15,
+        "bookings_score": 40,
+        "reviews_score": 80,
+        "repeat_customers_score": 50,
+        "referrals_score": 25,
+        "profile_completion_score": 30,
+        "total_score": 40.8
+      }
+    },
+    {
+      "id": "ten_it4ee91",
+      "created_at": "2026-10-28T11:38:18.380Z",
+      "updated_at": "2026-10-28T11:38:18.381Z",
+      "approval_status": "pending",
+      "is_active": true,
+      "rating": 5,
+      "reviews_count": 0,
+      "is_verified": false,
+      "starting_price": 300,
+      "name": "The Royal Fade Barber",
+      "business_type": "Barber Shop",
+      "owner_name": "Vikram Singh",
+      "phone": "9829012345",
+      "city": "Jaipur",
+      "area": "Vaishali Nagar",
+      "template_id": "barber-shop",
+      "ranking_score": 40.8,
+      "ranking_breakdown": {
+        "qr_payments_score": 15,
+        "bookings_score": 40,
+        "reviews_score": 80,
+        "repeat_customers_score": 50,
+        "referrals_score": 25,
+        "profile_completion_score": 30,
+        "total_score": 40.8
+      }
+    },
+    {
+      "id": "ten_8vljgwv",
+      "created_at": "2026-10-28T11:38:25.516Z",
+      "updated_at": "2026-10-28T11:38:25.516Z",
+      "approval_status": "pending",
+      "is_active": true,
+      "rating": 5,
+      "reviews_count": 0,
+      "is_verified": false,
+      "starting_price": 300,
+      "name": "Luxe Glamour Unisex Studio",
+      "business_type": "Unisex Salon",
+      "owner_name": "Pooja Sharma",
+      "phone": "9829023456",
+      "city": "Jaipur",
+      "area": "C-Scheme",
+      "template_id": "unisex-salon"
     }
   ],
   "website_templates": [
@@ -239,6 +313,72 @@
       },
       "is_published": true,
       "published_at": "2026-10-16T10:18:31.574Z"
+    },
+    {
+      "id": "web_ten_p6kxpup",
+      "tenant_id": "ten_p6kxpup",
+      "template_id": "tpl_luxury",
+      "slug": "crown-blade-barber-lounge",
+      "website_title": "Crown & Blade Barber Lounge | Vaishali Nagar",
+      "hero_title": "Welcome to Crown & Blade Barber Lounge",
+      "hero_subtitle": "Your premier destination for luxury grooming and beauty experiences.",
+      "about_text": "Crown & Blade Barber Lounge offers premium services in Vaishali Nagar, Jaipur. Experience our skilled touch and professional care.",
+      "phone": "9829012345",
+      "whatsapp_number": "9829012345",
+      "section_visibility": {
+        "hero": true,
+        "services": true,
+        "gallery": true,
+        "reviews": true,
+        "location": true,
+        "contact": true,
+        "offers": true
+      },
+      "is_published": false
+    },
+    {
+      "id": "web_ten_it4ee91",
+      "tenant_id": "ten_it4ee91",
+      "template_id": "barber-shop",
+      "slug": "the-royal-fade-barber",
+      "website_title": "The Royal Fade Barber | Vaishali Nagar",
+      "hero_title": "Welcome to The Royal Fade Barber",
+      "hero_subtitle": "Your premier destination for luxury grooming and beauty experiences.",
+      "about_text": "The Royal Fade Barber offers premium services in Vaishali Nagar, Jaipur. Experience our skilled touch and professional care.",
+      "phone": "9829012345",
+      "whatsapp_number": "9829012345",
+      "section_visibility": {
+        "hero": true,
+        "services": true,
+        "gallery": true,
+        "reviews": true,
+        "location": true,
+        "contact": true,
+        "offers": true
+      },
+      "is_published": false
+    },
+    {
+      "id": "web_ten_8vljgwv",
+      "tenant_id": "ten_8vljgwv",
+      "template_id": "unisex-salon",
+      "slug": "luxe-glamour-unisex-studio",
+      "website_title": "Luxe Glamour Unisex Studio | C-Scheme",
+      "hero_title": "Welcome to Luxe Glamour Unisex Studio",
+      "hero_subtitle": "Your premier destination for luxury grooming and beauty experiences.",
+      "about_text": "Luxe Glamour Unisex Studio offers premium services in C-Scheme, Jaipur. Experience our skilled touch and professional care.",
+      "phone": "9829023456",
+      "whatsapp_number": "9829023456",
+      "section_visibility": {
+        "hero": true,
+        "services": true,
+        "gallery": true,
+        "reviews": true,
+        "location": true,
+        "contact": true,
+        "offers": true
+      },
+      "is_published": false
     }
   ],
   "services": [
@@ -368,6 +508,39 @@
       "duration_minutes": 60,
       "status": "active",
       "is_featured": false
+    },
+    {
+      "id": "ser_o1yl70u",
+      "tenant_id": "ten_p6kxpup",
+      "category_name": "Grooming",
+      "name": "Classic Haircut",
+      "description": "Standard style cut and neck wash.",
+      "price": 300,
+      "duration_minutes": 30,
+      "status": "active",
+      "is_featured": true
+    },
+    {
+      "id": "ser_8pwqk5h",
+      "tenant_id": "ten_it4ee91",
+      "category_name": "Grooming",
+      "name": "Classic Haircut",
+      "description": "Standard style cut and neck wash.",
+      "price": 300,
+      "duration_minutes": 30,
+      "status": "active",
+      "is_featured": true
+    },
+    {
+      "id": "ser_hxwyuor",
+      "tenant_id": "ten_8vljgwv",
+      "category_name": "Grooming",
+      "name": "Classic Haircut",
+      "description": "Standard style cut and neck wash.",
+      "price": 300,
+      "duration_minutes": 30,
+      "status": "active",
+      "is_featured": true
     }
   ],
   "staff": [
@@ -614,6 +787,30 @@
       "available_balance": 850,
       "pending_balance": 150,
       "lifetime_earned": 2450
+    },
+    {
+      "id": "wal_ten_p6kxpup",
+      "owner_id": "usr_owner_generic",
+      "owner_type": "tenant",
+      "available_balance": 0,
+      "pending_balance": 0,
+      "lifetime_earned": 0
+    },
+    {
+      "id": "wal_ten_it4ee91",
+      "owner_id": "usr_owner_generic",
+      "owner_type": "tenant",
+      "available_balance": 0,
+      "pending_balance": 0,
+      "lifetime_earned": 0
+    },
+    {
+      "id": "wal_ten_8vljgwv",
+      "owner_id": "usr_owner_generic",
+      "owner_type": "tenant",
+      "available_balance": 0,
+      "pending_balance": 0,
+      "lifetime_earned": 0
     }
   ],
   "transactions": [
@@ -860,5 +1057,195 @@
       "ai_generated": true,
       "resolution_note": "Reassigned to Rahul Verma"
     }
-  ]
+  ],
+  "barber_bookings": [
+    {
+      "id": "bbr_seed_01",
+      "bookingReference": "TGD-2026-1042",
+      "services": [
+        {
+          "serviceId": "srv-cut-03",
+          "name": "Skin Fade",
+          "price": 950,
+          "duration": 45
+        }
+      ],
+      "serviceNames": "Skin Fade",
+      "barberId": "barber-vikram",
+      "barberName": "Vikram \"Blade\" Rathore",
+      "appointmentDate": "2026-10-28",
+      "startTime": "11:00",
+      "endTime": "11:45",
+      "totalDurationMinutes": 45,
+      "bufferMinutes": 10,
+      "customerName": "Devendra Shekhawat",
+      "customerPhone": "+91 98290 12345",
+      "customerEmail": "devendra@example.com",
+      "notes": "Low skin fade on sides, textured scissor top.",
+      "subtotalAmount": 950,
+      "discountAmount": 142.5,
+      "couponCode": "GENTS15",
+      "taxAmount": 145.35,
+      "totalAmount": 807.5,
+      "status": "Confirmed",
+      "createdAt": "2026-10-28T07:11:21.141Z"
+    },
+    {
+      "id": "bbr_seed_02",
+      "bookingReference": "TGD-2026-1189",
+      "services": [
+        {
+          "serviceId": "srv-combo-01",
+          "name": "Haircut + Beard Trim",
+          "price": 1050,
+          "duration": 60
+        },
+        {
+          "serviceId": "srv-scalp-07",
+          "name": "Head Massage",
+          "price": 550,
+          "duration": 30
+        }
+      ],
+      "serviceNames": "Haircut + Beard Trim, Head Massage",
+      "barberId": "barber-kabir",
+      "barberName": "Kabir Singhania",
+      "appointmentDate": "2026-10-28",
+      "startTime": "15:30",
+      "endTime": "17:00",
+      "totalDurationMinutes": 90,
+      "bufferMinutes": 10,
+      "customerName": "Aman Singhania",
+      "customerPhone": "+91 98291 99999",
+      "customerEmail": "aman.singhania@gmail.com",
+      "notes": "Prepare eucalyptus steam towels.",
+      "subtotalAmount": 1600,
+      "discountAmount": 320,
+      "couponCode": "LUXURY20",
+      "taxAmount": 230.4,
+      "totalAmount": 1280,
+      "status": "Checked In",
+      "createdAt": "2026-10-28T09:11:21.141Z"
+    },
+    {
+      "id": "bbr_seed_03",
+      "bookingReference": "TGD-2026-2241",
+      "services": [
+        {
+          "serviceId": "srv-cut-01",
+          "name": "Classic Haircut",
+          "price": 750,
+          "duration": 45
+        }
+      ],
+      "serviceNames": "Classic Haircut",
+      "barberId": "barber-arjun",
+      "barberName": "Arjun Mehra",
+      "appointmentDate": "2026-10-27",
+      "startTime": "10:30",
+      "endTime": "11:15",
+      "totalDurationMinutes": 45,
+      "bufferMinutes": 10,
+      "customerName": "Rohit Khandelwal",
+      "customerPhone": "+91 94140 22334",
+      "customerEmail": "rohit.k@yahoo.com",
+      "subtotalAmount": 750,
+      "discountAmount": 100,
+      "couponCode": "ROYAL100",
+      "taxAmount": 117,
+      "totalAmount": 650,
+      "status": "Completed",
+      "createdAt": "2026-10-26T11:11:21.141Z"
+    },
+    {
+      "id": "bbr_seed_04",
+      "bookingReference": "TGD-2026-3392",
+      "services": [
+        {
+          "serviceId": "srv-beard-07",
+          "name": "Hot Towel Shave",
+          "price": 650,
+          "duration": 35
+        }
+      ],
+      "serviceNames": "Hot Towel Shave",
+      "barberId": "barber-marcus",
+      "barberName": "Marcus D'Souza",
+      "appointmentDate": "2026-10-29",
+      "startTime": "12:00",
+      "endTime": "12:35",
+      "totalDurationMinutes": 35,
+      "bufferMinutes": 10,
+      "customerName": "Yash Vardhan",
+      "customerPhone": "+91 97840 55667",
+      "customerEmail": "yashv@outlook.com",
+      "subtotalAmount": 650,
+      "discountAmount": 0,
+      "taxAmount": 117,
+      "totalAmount": 650,
+      "status": "Pending",
+      "createdAt": "2026-10-28T11:11:21.141Z"
+    },
+    {
+      "id": "bbr_seed_05",
+      "bookingReference": "TGD-2026-4401",
+      "services": [
+        {
+          "serviceId": "srv-combo-04",
+          "name": "Premium Grooming Combo",
+          "price": 1899,
+          "duration": 90
+        }
+      ],
+      "serviceNames": "Premium Grooming Combo",
+      "barberId": "barber-vikram",
+      "barberName": "Vikram \"Blade\" Rathore",
+      "appointmentDate": "2026-10-27",
+      "startTime": "16:00",
+      "endTime": "17:30",
+      "totalDurationMinutes": 90,
+      "bufferMinutes": 10,
+      "customerName": "Kunal Kapoor",
+      "customerPhone": "+91 91160 88990",
+      "customerEmail": "kunal.kapoor@gmail.com",
+      "notes": "Client had sudden flight delay.",
+      "subtotalAmount": 1899,
+      "discountAmount": 0,
+      "taxAmount": 341.82,
+      "totalAmount": 1899,
+      "status": "Cancelled",
+      "cancellationReason": "Emergency business flight departure",
+      "createdAt": "2026-10-25T11:11:21.141Z"
+    },
+    {
+      "id": "bbr_seed_06",
+      "bookingReference": "TGD-2026-5510",
+      "services": [
+        {
+          "serviceId": "srv-scalp-05",
+          "name": "Hair Spa",
+          "price": 1250,
+          "duration": 60
+        }
+      ],
+      "serviceNames": "Hair Spa",
+      "barberId": "barber-arjun",
+      "barberName": "Arjun Mehra",
+      "appointmentDate": "2026-10-27",
+      "startTime": "14:30",
+      "endTime": "15:30",
+      "totalDurationMinutes": 60,
+      "bufferMinutes": 10,
+      "customerName": "Samir Mathur",
+      "customerPhone": "+91 99280 77112",
+      "customerEmail": "samir.m@gmail.com",
+      "subtotalAmount": 1250,
+      "discountAmount": 0,
+      "taxAmount": 225,
+      "totalAmount": 1250,
+      "status": "No Show",
+      "createdAt": "2026-10-26T11:11:21.141Z"
+    }
+  ],
+  "barber_blocked_slots": []
 }

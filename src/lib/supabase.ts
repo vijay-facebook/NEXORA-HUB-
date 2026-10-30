@@ -1084,6 +1084,33 @@ export const api = {
     return res.json();
   },
 
+  async getRecommendations(tenantId: string, bookingHistory: any[]) {
+    const res = await fetch(`${BASE_URL}/api/ai/recommendations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant_id: tenantId, booking_history: bookingHistory }),
+    });
+    return res.json();
+  },
+
+  async getRevenueForecast(tenantId: string) {
+    const res = await fetch(`${BASE_URL}/api/ai/revenue-forecast`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant_id: tenantId }),
+    });
+    return res.json();
+  },
+
+  async sendVIPReminder(tenantId: string, appointmentId: string, customerName: string, customerPhone: string) {
+    const res = await fetch(`${BASE_URL}/api/ai/send-vip-reminder`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant_id: tenantId, appointment_id: appointmentId, customer_name: customerName, customer_phone: customerPhone }),
+    });
+    return res.json();
+  },
+
   async sendReviewRequest(payload: { tenant_id: string; appointment_id?: string; customer_name?: string; customer_phone?: string }) {
     const res = await fetch(`${BASE_URL}/api/reviews/request`, {
       method: 'POST',
@@ -1108,6 +1135,11 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tenant_id: tenantId }),
     });
+    return res.json();
+  },
+
+  async getWaitlist(tenantId: string) {
+    const res = await fetch(`${BASE_URL}/api/waitlist?tenant_id=${tenantId}`);
     return res.json();
   }
 };

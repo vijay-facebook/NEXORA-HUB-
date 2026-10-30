@@ -120,6 +120,8 @@ export interface TenantWebsite {
   };
   is_published: boolean;
   published_at?: string;
+  logo_url?: string;
+  hero_image_url?: string;
 }
 
 export interface Service {
@@ -225,6 +227,18 @@ export interface Payout {
   payout_time: string; // Everyday 10:00 PM schedule
   status: 'pending' | 'completed' | 'failed';
   ledger_hash: string;
+  created_at: string;
+}
+
+export interface WaitlistEntry {
+  id: string;
+  tenant_id: string;
+  customer_name: string;
+  customer_phone: string;
+  service_id: string;
+  requested_date: string;
+  requested_time: string;
+  status: 'pending' | 'notified' | 'cancelled';
   created_at: string;
 }
 
@@ -341,5 +355,42 @@ export interface ScheduleNotification {
   is_resolved?: boolean;
   resolution_note?: string;
   ai_generated?: boolean;
+}
+
+export type DiscountType = 'percentage' | 'fixed';
+
+export interface PromotionCampaign {
+  id: string;
+  campaignName: string;
+  promotionalBanner?: string;
+  bannerGradient?: string;
+  bannerBadge?: string;
+  description: string;
+  discountType: DiscountType;
+  discountValue: number;
+  couponCode: string;
+  startDate: string; // ISO date string YYYY-MM-DD
+  expiryDate: string; // ISO date string YYYY-MM-DD
+  minPurchase: number;
+  maxDiscount?: number;
+  applicableItems: string[]; // e.g. ['All Services'] or specific category / service names
+  usageLimit: number;
+  currentUsageCount: number;
+  perCustomerLimit: number;
+  isActive: boolean;
+  termsAndConditions: string[];
+  category: 
+    | 'first_visit'
+    | 'weekday'
+    | 'combo'
+    | 'birthday'
+    | 'grooming_package'
+    | 'festival'
+    | 'student'
+    | 'referral'
+    | 'membership'
+    | 'product_sale';
+  isGenuineTimeLimited?: boolean;
+  countdownEndsAt?: string; // ISO 8601 string for genuine timer
 }
 

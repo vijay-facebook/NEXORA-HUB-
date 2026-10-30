@@ -20,6 +20,8 @@ import PartnerDashboard from './components/growth-partner/PartnerDashboard';
 import JobsLayout from './components/jobs/JobsLayout';
 import CandidateProfile from './components/jobs/CandidateProfile';
 import ClientPortal from './components/ClientPortal';
+import TemplateRouter from './templates/TemplateRouter';
+import TemplatePreviewHeaderMenu from './components/TemplatePreviewHeaderMenu';
 
 import { api } from './lib/supabase';
 import { Tenant, Service } from './types';
@@ -30,8 +32,23 @@ export default function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [activeRole, setActiveRole] = useState<'marketplace' | 'owner' | 'partner' | 'brand' | 'jobs' | 'admin'>('marketplace');
   
-  // Salon owner selected tenant
-  const [selectedOwnerTenantId, setSelectedOwnerTenantId] = useState<string>('ten_aura');
+  // Salon owner selected tenant initialized from activeSalonId / localStorage if present
+  const [selectedOwnerTenantId, setSelectedOwnerTenantId] = useState<string>(() => {
+    try {
+      const activeSalonId = localStorage.getItem('activeSalonId');
+      if (activeSalonId) return activeSalonId;
+      const recentId = localStorage.getItem('nexora_recent_tenant_id');
+      if (recentId) return recentId;
+      const profileRaw = localStorage.getItem('nexora_active_business_profile');
+      if (profileRaw) {
+        const parsed = JSON.parse(profileRaw);
+        if (parsed?.tenant?.id) return parsed.tenant.id;
+      }
+    } catch (e) {
+      // ignore
+    }
+    return 'ten_aura';
+  });
   
   // Custom public slug route simulation
   const [activePublicSlug, setActivePublicSlug] = useState<string | null>(null);
@@ -77,26 +94,74 @@ export default function App() {
     loadData();
   }, [dbRefreshKey]);
 
-  // Synchronize owner role with tenant selection and path
+  // Synchronize owner role with tenant selection and path safely
   useEffect(() => {
+    // If current path is a template preview or public site route, do NOT redirect to /dashboard
+    if (
+      currentPath.startsWith('/templates/') || 
+      currentPath.startsWith('/site/') || 
+      currentPath.startsWith('/jobs') || 
+      currentPath === '/client-portal' || 
+      currentPath === '/growth-partner'
+    ) {
+      return;
+    }
+
     if (activeRole === 'owner') {
+      const activeSalonId = localStorage.getItem('activeSalonId');
+      const recentTenantId = localStorage.getItem('nexora_recent_tenant_id');
+      const activeProfileRaw = localStorage.getItem('nexora_active_business_profile');
+      
+      let targetTenantId = selectedOwnerTenantId;
+      
+      if (activeSalonId) {
+        targetTenantId = activeSalonId;
+      } else if (recentTenantId) {
+        targetTenantId = recentTenantId;
+      } else if (activeProfileRaw) {
+        try {
+          const parsed = JSON.parse(activeProfileRaw);
+          if (parsed?.tenant?.id) targetTenantId = parsed.tenant.id;
+        } catch (e) {}
+      }
+
       if (allTenants.length > 0) {
-        if (!selectedOwnerTenantId || (selectedOwnerTenantId !== 'new' && !allTenants.some(t => t.id === selectedOwnerTenantId))) {
-          setSelectedOwnerTenantId(allTenants[0].id);
+        if (!targetTenantId || (targetTenantId !== 'new' && !allTenants.some(t => t.id === targetTenantId))) {
+          if (activeSalonId) {
+            targetTenantId = activeSalonId;
+          } else if (recentTenantId) {
+            targetTenantId = recentTenantId;
+          } else {
+            targetTenantId = allTenants[0]?.id || 'ten_aura';
+          }
+        }
+        if (targetTenantId !== selectedOwnerTenantId) {
+          setSelectedOwnerTenantId(targetTenantId);
         }
         if (currentPath === '/' || currentPath === '/marketplace' || currentPath === '') {
-          setCurrentPath('/dashboard');
-          window.history.pushState({}, '', '/dashboard');
+          const selectedTemplate = localStorage.getItem('selectedTemplate') || localStorage.getItem('activeTemplateSlug');
+          if (activeSalonId && selectedTemplate) {
+            const templateRoute = `/templates/${selectedTemplate}`;
+            setCurrentPath(templateRoute);
+            window.history.pushState({}, '', templateRoute);
+          } else {
+            setCurrentPath('/dashboard');
+            window.history.pushState({}, '', '/dashboard');
+          }
         }
-      } else {
-        setSelectedOwnerTenantId('new');
-        if (currentPath !== '/dashboard') {
-          setCurrentPath('/dashboard');
-          window.history.pushState({}, '', '/dashboard');
+      } else if (!loading) {
+        if (!activeProfileRaw && !recentTenantId && !activeSalonId) {
+          if (selectedOwnerTenantId !== 'new') {
+            setSelectedOwnerTenantId('new');
+          }
+          if (currentPath === '/' || currentPath === '/marketplace' || currentPath === '') {
+            setCurrentPath('/dashboard');
+            window.history.pushState({}, '', '/dashboard');
+          }
         }
       }
     }
-  }, [activeRole, allTenants]);
+  }, [activeRole, allTenants, currentPath, loading, selectedOwnerTenantId]);
 
   // Handle direct url path checks (e.g. /site/aura-premium)
   let urlSlug: string | null = null;
@@ -151,6 +216,31 @@ export default function App() {
     );
   }
 
+  // Handle Business-specific template route (e.g. /templates/barber-shop, /templates/unisex-salon)
+  if (currentPath.startsWith('/templates/')) {
+    const templateSlug = currentPath.split('/')[2] || 'barber-shop';
+    return (
+      <div className="bg-slate-950 min-h-screen">
+        <ScrollProgressBar />
+        <PageTransition viewKey={`template-${templateSlug}`}>
+          <TemplateRouter 
+            templateSlug={templateSlug}
+            onNavigateHome={() => {
+              setActiveRole('owner');
+              window.history.pushState({}, '', '/dashboard');
+              setCurrentPath('/dashboard');
+            }}
+            onNavigateToBuilder={() => {
+              setActiveRole('owner');
+              window.history.pushState({}, '', '/dashboard/website');
+              setCurrentPath('/dashboard/website');
+            }}
+          />
+        </PageTransition>
+      </div>
+    );
+  }
+
   // Trigger global data refresh across components
   const triggerDbRefresh = () => {
     setDbRefreshKey(prev => prev + 1);
@@ -192,6 +282,7 @@ export default function App() {
           <PublicShopWebsite 
             slug={urlSlug} 
             initialSubRoute={subRoute}
+            userRole={activeRole}
             onBackToMarketplace={handleBackToConsole}
             onNavigateToBuilder={() => {
               setActiveRole('owner');
@@ -226,8 +317,16 @@ export default function App() {
             </div>
           </div>
 
-          {/* Database state indicator */}
+          {/* Template Preview Menu & Database state indicator */}
           <div className="flex items-center gap-3">
+            <TemplatePreviewHeaderMenu 
+              currentPath={currentPath}
+              onSelectTemplateRoute={(targetRoute) => {
+                window.history.pushState({}, '', targetRoute);
+                setCurrentPath(targetRoute);
+              }}
+            />
+
             <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-slate-500 bg-slate-50 border border-slate-200 px-3 py-1 rounded-full font-medium">
               <Globe className="w-3.5 h-3.5 text-indigo-600" />
               <span>Jaipur Core Ledger Nodes Online</span>

@@ -509,11 +509,16 @@ export default function MarketplaceHome({
                   className="bg-transparent text-slate-950 font-bold border-none w-full outline-none text-xs p-0 mt-0.5 focus:ring-0 cursor-pointer"
                 >
                   <option value="All">Jaipur (All Areas)</option>
-                  <option value="Malviya Nagar">Malviya Nagar</option>
+                  <option value="Rambagh Palace">Rambagh Palace</option>
+                  <option value="City Palace">City Palace</option>
+                  <option value="Jal Mahal">Jal Mahal</option>
+                  <option value="Amer Fort Road">Amer Fort Road</option>
+                  <option value="Civil Lines">Civil Lines</option>
                   <option value="C-Scheme">C-Scheme</option>
+                  <option value="Malviya Nagar">Malviya Nagar</option>
                   <option value="Raja Park">Raja Park</option>
                   <option value="Vaishali Nagar">Vaishali Nagar</option>
-                  <option value="Mansarovar">Mansarovar</option>
+                  <option value="Tonk Road">Tonk Road</option>
                 </select>
               </div>
             </div>
@@ -729,7 +734,7 @@ export default function MarketplaceHome({
           <div className="pt-2 text-left border-t border-slate-100">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-2">Explore Popular Areas:</span>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-              {['Malviya Nagar', 'C-Scheme', 'Raja Park', 'Vaishali Nagar', 'Mansarovar'].map((area, idx) => {
+              {['Malviya Nagar', 'C-Scheme', 'Raja Park', 'Vaishali Nagar', 'Rambagh Palace'].map((area, idx) => {
                 const count = approvedSalons.filter(s => s.area === area).length;
                 return (
                   <button
